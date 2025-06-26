@@ -1,0 +1,186 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Browse - AIFLIX{% endblock %}
+
+{% block content %}
+<div class="browse-page min-vh-100">
+    {% include 'includes/navbar.html' %}
+    
+    <div class="container py-5 mt-5">
+        <div class="row">
+            <!-- Sidebar with filters -->
+            <div class="col-lg-3 mb-4">
+                <div class="card bg-dark text-white border-secondary">
+                    <div class="card-header">
+                        <h5 class="mb-0">Filters</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="mb-3">Content Type</h6>
+                        <div class="btn-group w-100 mb-4" role="group">
+                            <a href="?type=all{% if request.GET.genre %}&genre={{ request.GET.genre }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+                               class="btn btn-outline-light {% if not request.GET.type or request.GET.type == 'all' %}active{% endif %}">
+                                All
+                            </a>
+                            <a href="?type=movie{% if request.GET.genre %}&genre={{ request.GET.genre }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+                               class="btn btn-outline-light {% if request.GET.type == 'movie' %}active{% endif %}">
+                                Movies
+                            </a>
+                            <a href="?type=series{% if request.GET.genre %}&genre={{ request.GET.genre }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+                               class="btn btn-outline-light {% if request.GET.type == 'series' %}active{% endif %}">
+                                TV Shows
+                            </a>
+                        </div>
+                        
+                        <h6 class="mb-3">Sort By</h6>
+                        <div class="list-group mb-4">
+                            <a href="?{% if request.GET.type %}type={{ request.GET.type }}&{% endif %}{% if request.GET.genre %}genre={{ request.GET.genre }}&{% endif %}sort=latest" 
+                               class="list-group-item list-group-item-action bg-dark text-white border-secondary {% if not request.GET.sort or request.GET.sort == 'latest' %}active{% endif %}">
+                                Latest
+                            </a>
+                            <a href="?{% if request.GET.type %}type={{ request.GET.type }}&{% endif %}{% if request.GET.genre %}genre={{ request.GET.genre }}&{% endif %}sort=title" 
+                               class="list-group-item list-group-item-action bg-dark text-white border-secondary {% if request.GET.sort == 'title' %}active{% endif %}">
+                                Title (A-Z)
+                            </a>
+                            <a href="?{% if request.GET.type %}type={{ request.GET.type }}&{% endif %}{% if request.GET.genre %}genre={{ request.GET.genre }}&{% endif %}sort=rating" 
+                               class="list-group-item list-group-item-action bg-dark text-white border-secondary {% if request.GET.sort == 'rating' %}active{% endif %}">
+                                Highest Rated
+                            </a>
+                            <a href="?{% if request.GET.type %}type={{ request.GET.type }}&{% endif %}{% if request.GET.genre %}genre={{ request.GET.genre }}&{% endif %}sort=year" 
+                               class="list-group-item list-group-item-action bg-dark text-white border-secondary {% if request.GET.sort == 'year' %}active{% endif %}">
+                                Release Year
+                            </a>
+                        </div>
+                        
+                        <h6 class="mb-3">Genres</h6>
+                        <div class="list-group">
+                            <a href="?{% if request.GET.type %}type={{ request.GET.type }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}" 
+                               class="list-group-item list-group-item-action bg-dark text-white border-secondary {% if not request.GET.genre %}active{% endif %}">
+                                All Genres
+                            </a>
+                            {% for genre in all_genres %}
+                            <a href="?{% if request.GET.type %}type={{ request.GET.type }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}genre={{ genre.slug }}" 
+                               class="list-group-item list-group-item-action bg-dark text-white border-secondary {% if request.GET.genre == genre.slug %}active{% endif %}">
+                                {{ genre.name }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main content -->
+            <div class="col-lg-9">
+                <div class="mb-4">
+                    <h2 class="text-white mb-4">
+                        {% if selected_genre %}{{ selected_genre.name }}{% else %}All{% endif %} 
+                        {% if request.GET.type == 'movie' %}Movies
+                        {% elif request.GET.type == 'series' %}TV Shows
+                        {% else %}Content{% endif %}
+                        {% if request.GET.sort and request.GET.sort != 'latest' %}
+                            (Sorted by 
+                            {% if request.GET.sort == 'title' %}A-Z
+                            {% elif request.GET.sort == 'rating' %}Highest Rated
+                            {% elif request.GET.sort == 'year' %}Newest First
+                            {% endif %})
+                        {% endif %}
+                    </h2>
+                    
+                    {% if movies %}
+                        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-4">
+                            {% for movie in movies %}
+                            <div class="col">
+                                <div class="card h-100 bg-transparent border-0">
+                                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
+                                        <div class="position-relative">
+                                            <img src="{% if movie.thumbnail %}{{ movie.thumbnail.url }}{% else %}{% static 'img/placeholder-poster.jpg' %}{% endif %}" 
+                                                 class="card-img-top" alt="{{ movie.title }}" style="border-radius: 4px;">
+                                            <div class="card-overlay">
+                                                <div class="overlay-content">
+                                                    <i class="fas fa-play-circle fa-3x"></i>
+                                                </div>
+                                            </div>
+                                            {% if movie.type == 'series' %}
+                                            <span class="position-absolute top-0 end-0 m-2 badge bg-dark">
+                                                <i class="fas fa-tv me-1"></i> Series
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="card-body px-0 pb-0">
+                                            <h6 class="card-title text-white mb-1">{{ movie.title }}</h6>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted">{{ movie.release_date|date:"Y" }}</small>
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="fas fa-star text-warning"></i> 
+                                                    {{ movie.average_rating|default:"N/A" }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-film fa-3x text-muted mb-3"></i>
+                            <h4 class="text-white">No content found</h4>
+                            <p class="text-muted">Try adjusting your filters or check back later for new additions.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .browse-page {
+        background-color: #141414;
+        color: #fff;
+    }
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    }
+    .card-img-top {
+        aspect-ratio: 2/3;
+        object-fit: cover;
+    }
+    .card-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        border-radius: 4px;
+    }
+    .card:hover .card-overlay {
+        opacity: 1;
+    }
+    .overlay-content {
+        color: white;
+        text-align: center;
+    }
+    .list-group-item.active {
+        background-color: #e50914;
+        border-color: #e50914;
+    }
+    .btn-outline-light.active {
+        background-color: #e50914;
+        border-color: #e50914;
+        color: white;
+    }
+</style>
+{% endblock %}

@@ -18,6 +18,18 @@ class CustomUserCreationForm(UserCreationForm):
             user.save()
         return user
 
+class UserProfileForm(forms.ModelForm):
+    """Form for updating user profile information."""
+    email = forms.EmailField(required=True)
+    
+    class Meta:
+        model = CustomUser
+        fields = ('username', 'email', 'first_name', 'last_name')
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].help_text = 'Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'
+
 class CustomAuthenticationForm(AuthenticationForm):
     """Authentication form that uses email instead of username."""
     username = forms.CharField(label='Email / Username')

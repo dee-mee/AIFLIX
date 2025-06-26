@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .forms import CustomUserCreationForm, CustomAuthenticationForm
+from django.contrib.auth.forms import PasswordChangeForm
+from .forms import CustomUserCreationForm, CustomAuthenticationForm, UserProfileForm
 
 def register(request):
     """Handle user registration."""
@@ -30,8 +31,34 @@ def user_login(request):
         form = CustomAuthenticationForm()
     return render(request, 'accounts/login_netflix.html', {'form': form})
 
+@login_required
+def profile(request):
+    """Handle user profile and account settings."""
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, instance=request.user)
+        password_form = PasswordChangeForm(request.user, request.POST)
+        
+        if 'update_profile' in request.POST and form.is_valid():
+            form.save()
+            messages.success(request, 'Your profile was successfully updated!')
+            return redirect('accounts:profile')
+            
+        if 'change_password' in request.POST and password_form.is_valid():
+            user = password_form.save()
+            update_session_auth_hash(request, user)  # Important to keep the user logged in
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('accounts:profile')
+    else:
+        form = UserProfileForm(instance=request.user)
+        password_form = PasswordChangeForm(request.user)
+    
+    return render(request, 'accounts/profile.html', {
+        'form': form,
+        'password_form': password_form
+    })
+
 def user_logout(request):
     """Handle user logout."""
     logout(request)
     messages.info(request, 'You have been logged out.')
-    return redirect('accounts:login')
+    return redirect('movies:home')

@@ -6,15 +6,33 @@ from django.views.decorators.http import require_POST
 from .models import Profile, WatchHistory, MyList
 from .forms import ProfileForm, ProfileSelectionForm
 from movies.models import Movie
+from django.views.generic import CreateView
+from django.urls import reverse_lazy
+
+class CreateProfileView(CreateView):
+    model = Profile
+    form_class = ProfileForm
+    template_name = 'profiles/profile_form.html'
+    success_url = reverse_lazy('profiles:profile_list')
+    
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        messages.success(self.request, 'Profile created successfully!')
+        return super().form_valid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Create Profile'
+        return context
 
 @login_required
 def profile_list(request):
     """List all profiles for the current user."""
     profiles = request.user.profiles.all()
     
-    # If user has no profiles, redirect to create one
+    # If user has no profiles, show a message
     if not profiles.exists():
-        return redirect('profiles:create_profile')
+        messages.info(request, 'No profiles found. Please contact support for assistance.')
     
     # If user has only one profile and it's not selected, select it automatically
     if len(profiles) == 1 and 'profile_id' not in request.session:
@@ -23,57 +41,11 @@ def profile_list(request):
     
     # If user has a selected profile and is accessing the profile list,
     # we might want to redirect them to the home page
-    if 'profile_id' in request.session and request.GET.get('force') != 'true':
+    if 'profile_id' in request.session and request.GET.get('force') != 'true' and profiles.exists():
         return redirect('movies:home')
     
     return render(request, 'profiles/profile_list.html', {
         'profiles': profiles,
-    })
-
-@login_required
-def create_profile(request, profile_id=None):
-    """
-    Create a new profile or edit an existing one for the current user.
-    """
-    profile = None
-    if profile_id:
-        profile = get_object_or_404(Profile, id=profile_id, user=request.user)
-    
-    # Check profile limit (max 5 profiles per user)
-    if not profile and request.user.profiles.count() >= 5:
-        messages.error(request, 'You can only have up to 5 profiles.')
-        return redirect('profiles:profile_list')
-    
-    if request.method == 'POST':
-        form = ProfileForm(request.POST, request.FILES, instance=profile)
-        if form.is_valid():
-            profile = form.save(commit=False)
-            
-            # Only set the user for new profiles
-            if not profile.pk:
-                profile.user = request.user
-                message = 'Profile created successfully!'
-            else:
-                message = 'Profile updated successfully!'
-            
-            profile.save()
-            form.save_m2m()  # Save many-to-many relationships
-            
-            messages.success(request, message)
-            
-            # If this is the user's first profile, select it automatically
-            if request.user.profiles.count() == 1:
-                request.session['profile_id'] = profile.id
-                return redirect('movies:home')
-                
-            return redirect('profiles:profile_list')
-    else:
-        form = ProfileForm(instance=profile)
-    
-    return render(request, 'profiles/profile_form.html', {
-        'form': form,
-        'profile': profile,
-        'is_edit': profile is not None,
     })
 
 @login_required

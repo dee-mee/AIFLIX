@@ -1,0 +1,314 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Profile - AIFLIX{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-container {
+        background-color: #141414;
+        min-height: 100vh;
+        color: #fff;
+    }
+    .profile-sidebar {
+        background-color: #1a1a1a;
+        border-radius: 8px;
+        padding: 2rem;
+        height: 100%;
+    }
+    .profile-avatar {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #e50914;
+        margin-bottom: 1.5rem;
+    }
+    .nav-pills .nav-link {
+        color: #fff;
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    .nav-pills .nav-link:hover,
+    .nav-pills .nav-link.active {
+        background-color: #e50914;
+        color: #fff;
+    }
+    .tab-content {
+        background-color: #1a1a1a;
+        border-radius: 8px;
+        padding: 2rem;
+    }
+    .form-control, .form-select {
+        background-color: #333;
+        border: 1px solid #444;
+        color: #fff;
+    }
+    .form-control:focus, .form-select:focus {
+        background-color: #444;
+        color: #fff;
+        border-color: #e50914;
+        box-shadow: 0 0 0 0.25rem rgba(229, 9, 20, 0.25);
+    }
+    .btn-primary {
+        background-color: #e50914;
+        border: none;
+        padding: 0.5rem 1.5rem;
+    }
+    .btn-primary:hover {
+        background-color: #f40612;
+    }
+    .stat-card {
+        background-color: #222;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: transform 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #e50914;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    {% include 'includes/navbar.html' %}
+    
+    <div class="container py-5">
+        <div class="row g-4">
+            <!-- Sidebar -->
+            <div class="col-lg-3">
+                <div class="profile-sidebar text-center">
+                    <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}" 
+                         alt="Profile Picture" class="profile-avatar">
+                    <h4 class="mb-3">{{ user.get_full_name|default:user.username }}</h4>
+                    <p class="text-muted">Member since {{ user.date_joined|date:"F Y" }}</p>
+                    
+                    <ul class="nav nav-pills flex-column mt-4">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="pill" href="#profile">
+                                <i class="fas fa-user me-2"></i> Profile
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="pill" href="#security">
+                                <i class="fas fa-shield-alt me-2"></i> Security
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="pill" href="#preferences">
+                                <i class="fas fa-cog me-2"></i> Preferences
+                            </a>
+                        </li>
+                        <li class="nav-item mt-4">
+                            <a href="{% url 'accounts:logout' %}" class="btn btn-outline-danger w-100">
+                                <i class="fas fa-sign-out-alt me-2"></i> Sign Out
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-lg-9">
+                <div class="tab-content">
+                    <!-- Profile Tab -->
+                    <div class="tab-pane fade show active" id="profile">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2>Profile Information</h2>
+                            <button class="btn btn-outline-secondary" id="editProfileBtn">
+                                <i class="fas fa-edit me-2"></i>Edit Profile
+                            </button>
+                        </div>
+                        
+                        <form method="post" enctype="multipart/form-data" id="profileForm" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            <input type="hidden" name="form_type" value="profile">
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-6 mb-3">
+                                    <label for="id_first_name" class="form-label">First Name</label>
+                                    <input type="text" class="form-control" id="id_first_name" name="first_name" 
+                                           value="{{ user.first_name }}" readonly>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="id_last_name" class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" id="id_last_name" name="last_name" 
+                                           value="{{ user.last_name }}" readonly>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label for="id_username" class="form-label">Username</label>
+                                    <input type="text" class="form-control" id="id_username" name="username" 
+                                           value="{{ user.username }}" readonly>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label for="id_email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="id_email" name="email" 
+                                           value="{{ user.email }}" readonly>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label for="id_bio" class="form-label">Bio</label>
+                                    <textarea class="form-control" id="id_bio" name="bio" rows="3" 
+                                              placeholder="Tell us about yourself..." readonly></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <div class="d-none" id="profileFormActions">
+                                        <button type="submit" class="btn btn-primary me-2">Save Changes</button>
+                                        <button type="button" class="btn btn-outline-secondary" id="cancelProfileEdit">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Security Tab -->
+                    <div class="tab-pane fade" id="security">
+                        <h2 class="mb-4">Security Settings</h2>
+                        
+                        <form method="post" id="passwordForm" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            <input type="hidden" name="form_type" value="password">
+                            
+                            <div class="mb-4">
+                                <h5>Change Password</h5>
+                                <p class="text-muted">Update your password to keep your account secure.</p>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="id_old_password" class="form-label">Current Password</label>
+                                            <input type="password" class="form-control" id="id_old_password" 
+                                                   name="old_password" required>
+                                            <div class="invalid-feedback">Please enter your current password.</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="id_new_password1" class="form-label">New Password</label>
+                                            <input type="password" class="form-control" id="id_new_password1" 
+                                                   name="new_password1" required>
+                                            <div class="form-text">Your password must be at least 8 characters long.</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="id_new_password2" class="form-label">Confirm New Password</label>
+                                            <input type="password" class="form-control" id="id_new_password2" 
+                                                   name="new_password2" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Update Password</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Preferences Tab -->
+                    <div class="tab-pane fade" id="preferences">
+                        <h2 class="mb-4">Preferences</h2>
+                        
+                        <form method="post" id="preferencesForm">
+                            {% csrf_token %}
+                            <input type="hidden" name="form_type" value="preferences">
+                            
+                            <div class="mb-4">
+                                <h5>Language & Region</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="id_language" class="form-label">Language</label>
+                                            <select class="form-select" id="id_language" name="language">
+                                                <option value="en" selected>English</option>
+                                                <option value="es">Español</option>
+                                                <option value="fr">Français</option>
+                                                <option value="de">Deutsch</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="id_region" class="form-label">Region</label>
+                                            <select class="form-select" id="id_region" name="region">
+                                                <option value="us" selected>United States</option>
+                                                <option value="uk">United Kingdom</option>
+                                                <option value="ca">Canada</option>
+                                                <option value="au">Australia</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5>Playback Settings</h5>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="autoplay_next_episode" name="autoplay_next_episode" checked>
+                                    <label class="form-check-label" for="autoplay_next_episode">Autoplay next episode in a series</label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="autoplay_previews" name="autoplay_previews" checked>
+                                    <label class="form-check-label" for="autoplay_previews">Autoplay previews while browsing</label>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Save Preferences</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Enable/disable form fields for editing
+    document.addEventListener('DOMContentLoaded', function() {
+        const editBtn = document.getElementById('editProfileBtn');
+        const cancelBtn = document.getElementById('cancelProfileEdit');
+        const form = document.getElementById('profileForm');
+        const formActions = document.getElementById('profileFormActions');
+        
+        if (editBtn) {
+            editBtn.addEventListener('click', function() {
+                const inputs = form.querySelectorAll('input, textarea, select');
+                inputs.forEach(input => {
+                    input.readOnly = false;
+                    input.classList.add('editable');
+                });
+                editBtn.classList.add('d-none');
+                formActions.classList.remove('d-none');
+            });
+        }
+        
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function() {
+                const inputs = form.querySelectorAll('input, textarea, select');
+                inputs.forEach(input => {
+                    input.readOnly = true;
+                    input.classList.remove('editable');
+                });
+                editBtn.classList.remove('d-none');
+                formActions.classList.add('d-none');
+                form.reset();
+            });
+        }
+        
+        // Form validation
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    });
+</script>
+{% endblock %}

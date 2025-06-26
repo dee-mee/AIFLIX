@@ -20,6 +20,53 @@ def get_base_queryset():
         )
     ).order_by('-has_poster', '-release_date')
 
+def browse(request):
+    """Browse all available content with filtering options."""
+    # Get filter parameters
+    genre_slug = request.GET.get('genre')
+    content_type = request.GET.get('type', 'all')  # 'movie', 'series', or 'all'
+    sort_by = request.GET.get('sort', 'latest')  # 'latest', 'title', 'rating', 'year'
+    
+    # Start with base queryset
+    movies = get_base_queryset()
+    
+    # Apply content type filter
+    if content_type == 'movie':
+        movies = movies.filter(type='movie')
+    elif content_type == 'series':
+        movies = movies.filter(type='series')
+    
+    # Apply genre filter if provided
+    genre = None
+    if genre_slug:
+        try:
+            genre = Genre.objects.get(slug=genre_slug)
+            movies = movies.filter(genres=genre)
+        except Genre.DoesNotExist:
+            pass
+    
+    # Apply sorting
+    if sort_by == 'title':
+        movies = movies.order_by('title')
+    elif sort_by == 'rating':
+        movies = movies.order_by('-average_rating', '-release_date')
+    elif sort_by == 'year':
+        movies = movies.order_by('-release_date')
+    else:  # latest
+        movies = movies.order_by('-release_date')
+    
+    # Get all genres for filter sidebar
+    all_genres = Genre.objects.all().order_by('name')
+    
+    context = {
+        'movies': movies,
+        'all_genres': all_genres,
+        'selected_genre': genre,
+        'content_type': content_type,
+        'sort_by': sort_by,
+    }
+    return render(request, 'movies/browse.html', context)
+
 def home(request):
     """Home page with featured and trending content."""
     # Get genre filter if any

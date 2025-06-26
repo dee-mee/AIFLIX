@@ -112,6 +112,6 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 # Login/Logout URLs
-LOGIN_REDIRECT_URL = 'home'
-LOGOUT_REDIRECT_URL = 'login'
-LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'movies:home'  # Changed to use the correct URL name with namespace
+LOGOUT_REDIRECT_URL = 'accounts:login'  # Added accounts namespace
+LOGIN_URL = 'accounts:login'  # Added accounts namespace

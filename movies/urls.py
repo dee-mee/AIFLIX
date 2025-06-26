@@ -6,6 +6,7 @@ app_name = 'movies'
 urlpatterns = [
     # Main pages
     path('', views.home, name='home'),
+    path('browse/', views.browse, name='browse'),
     path('search/', views.search_movies, name='search_movies'),
     
     # Movie/Series detail pages

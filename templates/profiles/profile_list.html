@@ -4,82 +4,280 @@
 
 {% block title %}Who's Watching? - AIFLIX{% endblock %}
 
-{% block content %}
-<div class="profiles-container min-vh-100 d-flex flex-column">
-    {% include 'includes/navbar.html' with transparent=True %}
+{% block extra_css %}
+<style>
+    .profiles-container {
+        background-color: #141414;
+        min-height: 100vh;
+        color: #fff;
+    }
     
+    .profile-card {
+        position: relative;
+        transition: all 0.3s ease;
+        padding: 1rem;
+        border-radius: 8px;
+    }
+    
+    .profile-card:hover {
+        transform: scale(1.05);
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 1rem;
+        position: relative;
+        transition: all 0.3s ease;
+        overflow: hidden;
+        border-radius: 4px;
+        border: 2px solid transparent;
+    }
+    
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 4px;
+        border: 3px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .profile-card:hover .profile-avatar img {
+        border-color: #e50914;
+        box-shadow: 0 0 10px rgba(229, 9, 20, 0.5);
+        transform: scale(1.1);
+    }
+    
+    .profile-initials {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, #e50914, #b81d24);
+        color: white;
+        font-size: 2.5rem;
+        font-weight: bold;
+        border-radius: 4px;
+    }
+    
+    .profile-actions {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .profile-card:hover .profile-actions {
+        opacity: 1;
+    }
+    
+    .profile-add {
+        width: 120px;
+        height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #2a2a2a;
+        border: 2px dashed #666;
+        border-radius: 4px;
+        color: #666;
+        font-size: 3rem;
+        transition: all 0.3s ease;
+        margin: 0 auto 1rem;
+    }
+    
+    .profile-add:hover {
+        background-color: #333;
+        border-color: #999;
+        color: #fff;
+        transform: scale(1.05);
+    }
+    
+    .profile-name {
+        color: #808080;
+        font-size: 1.2rem;
+        margin-top: 0.5rem;
+        transition: color 0.3s ease;
+        text-align: center;
+    }
+    
+    .profile-card:hover .profile-name {
+        color: #e5e5e5;
+    }
+    
+    .kids-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background-color: #e50914;
+        color: white;
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 10px;
+    }
+    
+    .btn-outline-light {
+        border-color: #4d4d4d;
+        color: #b3b3b3;
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .profile-hover {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        border-radius: 4px;
+    }
+
+    .profile-hover i {
+        font-size: 2rem;
+        color: #fff;
+    }
+
+    .profile-avatar:hover .profile-hover {
+        opacity: 1;
+    }
+
+    .profile-avatar:hover img,
+    .profile-avatar:hover .profile-initials {
+        transform: scale(1.1);
+    }
+
+    .profile-add {
+        width: 120px;
+        height: 120px;
+        border: 2px dashed #4d4d4d;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #4d4d4d;
+        font-size: 3rem;
+        transition: all 0.3s ease;
+        margin: 0 auto;
+    }
+
+    .profile-add:hover {
+        border-color: #b3b3b3;
+        color: #b3b3b3;
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .profile-actions {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .profile-card:hover .profile-actions {
+        opacity: 1;
+    }
+
+    .profile-actions .dropdown-menu {
+        min-width: 10rem;
+    }
+
+    .profile-actions .btn-link {
+        color: #b3b3b3;
+        transition: color 0.2s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profiles-container d-flex flex-column">
     <div class="container my-auto py-5">
         <div class="row justify-content-center">
             <div class="col-12 text-center mb-5">
-                <h1 class="display-4 mb-4">Who's watching?</h1>
-                <p class="lead text-muted">Select a profile to continue</p>
+                <h1 class="display-4 mb-3" style="font-weight: 500;">Who's watching?</h1>
+                <p class="lead text-muted">Select a profile to get started</p>
             </div>
             
             <div class="col-12">
                 <div class="row justify-content-center">
                     {% for profile in profiles %}
-                    <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-4 position-relative">
+                    <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-5 px-2">
                         <div class="profile-card">
-                            <a href="{% url 'profiles:select_profile' profile.id %}" class="text-decoration-none text-center">
-                                <div class="profile-avatar mb-3 position-relative mx-auto">
+                            <a href="{% url 'profiles:select_profile' profile.id %}" class="text-decoration-none text-center d-block">
+                                <div class="profile-avatar">
                                     {% if profile.avatar %}
-                                        <img src="{{ profile.avatar.url }}" alt="{{ profile.name }}" class="img-fluid rounded-circle">
+                                        <img src="{{ profile.avatar.url }}" alt="{{ profile.name }}" class="img-fluid">
                                     {% else %}
-                                        <div class="profile-initials rounded-circle d-flex align-items-center justify-content-center">
+                                        <div class="profile-initials">
                                             {{ profile.initials }}
                                         </div>
                                     {% endif %}
-                                    <div class="profile-hover">
-                                        <i class="fas fa-play"></i>
-                                    </div>
+                                    {% if profile.is_kids %}
+                                        <span class="kids-badge">Kids</span>
+                                    {% endif %}
                                 </div>
-                                <h5 class="text-white mt-2 mb-0">{{ profile.name }}</h5>
-                                {% if profile.is_kids %}
-                                <span class="badge bg-primary mt-1">Kids</span>
-                                {% endif %}
+                                <div class="profile-name">{{ profile.name }}</div>
                             </a>
                             
-                            <!-- Profile actions dropdown -->
                             <div class="profile-actions">
-                                <button class="btn btn-link text-white p-0" type="button" id="profileActions{{ profile.id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-ellipsis-h"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileActions{{ profile.id }}">
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'profiles:create_profile' profile.id %}">
-                                            <i class="fas fa-edit me-2"></i> Edit
-                                        </a>
-                                    </li>
-                                    {% if profiles|length > 1 %}
-                                    <li>
-                                        <button class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteProfileModal" 
-                                                data-profile-id="{{ profile.id }}" data-profile-name="{{ profile.name }}">
-                                            <i class="fas fa-trash-alt me-2"></i> Delete
-                                        </button>
-                                    </li>
+                                <div class="dropdown">
+                                    <button class="btn btn-dark btn-sm rounded-circle p-2" type="button" 
+                                            id="profileActions{{ profile.id }}" data-bs-toggle="dropdown" 
+                                            aria-expanded="false">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                    {% if not profile.is_primary %}
+                                    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="profileActions{{ profile.id }}">
+                                        <li>
+                                            <button class="dropdown-item text-danger" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteProfileModal" 
+                                                    data-profile-id="{{ profile.id }}" 
+                                                    data-profile-name="{{ profile.name }}">
+                                                <i class="fas fa-trash-alt me-2"></i> Delete
+                                            </button>
+                                        </li>
+                                    </ul>
                                     {% endif %}
-                                </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
                     {% endfor %}
                     
-                    {% if profiles|length < 5 %}
-                    <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-4">
-                        <a href="{% url 'profiles:create_profile' %}" class="text-decoration-none text-center">
-                            <div class="profile-add mb-3 mx-auto">
-                                <i class="fas fa-plus"></i>
+                    <!-- Add Profile Button -->
+                    {% if profiles|length < 5 %}  <!-- Limit to 5 profiles per user -->
+                    <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-5 px-2">
+                        <a href="{% url 'profiles:create_profile' %}" class="text-decoration-none text-center d-block">
+                            <div class="profile-card">
+                                <div class="profile-avatar">
+                                    <div class="profile-add">
+                                        <i class="fas fa-plus"></i>
+                                    </div>
+                                </div>
+                                <div class="profile-name">Add Profile</div>
                             </div>
-                            <h5 class="text-muted mt-2">Add Profile</h5>
                         </a>
                     </div>
                     {% endif %}
                 </div>
             </div>
             
-            <div class="col-12 text-center mt-5">
-                <a href="{% url 'accounts:logout' %}" class="btn btn-outline-light btn-lg">
-                    <i class="fas fa-sign-out-alt me-2"></i> Sign Out of All Profiles
+            <div class="col-12 text-center mt-3">
+                <a href="{% url 'accounts:logout' %}" class="btn btn-outline-light btn-lg px-5">
+                    Sign Out of All Profiles
                 </a>
             </div>
         </div>
@@ -112,148 +310,6 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_css %}
-<style>
-.profiles-container {
-    background: #141414;
-    color: #fff;
-}
-
-.profile-card {
-    position: relative;
-    padding: 1rem;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-}
-
-.profile-card:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-}
-
-.profile-avatar {
-    width: 120px;
-    height: 120px;
-    position: relative;
-    overflow: hidden;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-    margin: 0 auto;
-    border: 2px solid transparent;
-}
-
-.profile-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.profile-initials {
-    width: 100%;
-    height: 100%;
-    background: #2f2f2f;
-    color: #b3b3b3;
-    font-size: 3rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.profile-hover {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    border-radius: 4px;
-}
-
-.profile-hover i {
-    font-size: 2rem;
-    color: #fff;
-}
-
-.profile-avatar:hover .profile-hover {
-    opacity: 1;
-}
-
-.profile-avatar:hover img,
-.profile-avatar:hover .profile-initials {
-    transform: scale(1.1);
-}
-
-.profile-add {
-    width: 120px;
-    height: 120px;
-    border: 2px dashed #4d4d4d;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #4d4d4d;
-    font-size: 3rem;
-    transition: all 0.3s ease;
-    margin: 0 auto;
-}
-
-.profile-add:hover {
-    border-color: #b3b3b3;
-    color: #b3b3b3;
-    background-color: rgba(255, 255, 255, 0.05);
-}
-
-.profile-actions {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.profile-card:hover .profile-actions {
-    opacity: 1;
-}
-
-.profile-actions .dropdown-menu {
-    min-width: 10rem;
-}
-
-.profile-actions .btn-link {
-    color: #b3b3b3;
-    transition: color 0.2s ease;
-}
-
-.profile-actions .btn-link:hover {
-    color: #fff;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .profile-avatar {
-        width: 100px;
-        height: 100px;
-    }
-    
-    .profile-add {
-        width: 100px;
-        height: 100px;
-    }
-    
-    .profile-actions {
-        opacity: 1; /* Always show on mobile */
-    }
-}
-</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -307,60 +363,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-{% endblock %}
-
-.profile-add:hover {
-    border-color: #b3b3b3;
-    color: #b3b3b3;
-    transform: scale(1.05);
-}
-
-.btn-outline-light {
-    border-color: #4d4d4d;
-    color: #b3b3b3;
-    padding: 0.5rem 1.5rem;
-    font-weight: 500;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    font-size: 0.9rem;
-}
-
-.btn-outline-light:hover {
-    border-color: #b3b3b3;
-    color: #fff;
-    background-color: transparent;
-}
-
-footer {
-    border-top: 1px solid #2f2f2f;
-}
-
-@media (max-width: 768px) {
-    .profile-avatar,
-    .profile-add {
-        width: 100px;
-        height: 100px;
-    }
-    
-    .profile-initials {
-        font-size: 2.5rem;
-    }
-}
-
-@media (max-width: 576px) {
-    .profile-avatar,
-    .profile-add {
-        width: 80px;
-        height: 80px;
-    }
-    
-    .profile-initials {
-        font-size: 2rem;
-    }
-    
-    h1.display-4 {
-        font-size: 2.5rem;
-    }
-}
-</style>
 {% endblock %}

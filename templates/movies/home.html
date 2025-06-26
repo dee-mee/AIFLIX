@@ -86,7 +86,118 @@
         color: #ffffff;
     }
     
-    /* Section Headers */
+    /* Hero Section */
+    .hero-section {
+        position: relative;
+        height: 75vh;
+        min-height: 600px;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        display: flex;
+        align-items: center;
+        padding: 0 4%;
+        color: white;
+        margin-bottom: 40px;
+    }
+    
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to top, #141414 0%, transparent 100%);
+        z-index: 1;
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        max-width: 40%;
+    }
+    
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    
+    .hero-meta {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+        color: #b3b3b3;
+    }
+    
+    .match {
+        color: #46d369;
+        font-weight: 600;
+    }
+    
+    .maturity {
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        padding: 0 0.4em;
+        font-size: 0.9em;
+    }
+    
+    .hero-description {
+        font-size: 1.2rem;
+        line-height: 1.4;
+        margin-bottom: 1.5rem;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    }
+    
+    .hero-actions {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .hero-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .hero-button i {
+        margin-right: 8px;
+    }
+    
+    .hero-button-primary {
+        background-color: white;
+        color: black;
+    }
+    
+    .hero-button-primary:hover {
+        background-color: rgba(255, 255, 255, 0.75);
+    }
+    
+    .hero-button-secondary, .hero-button-info {
+        background-color: rgba(109, 109, 110, 0.7);
+        color: white;
+    }
+    
+    .hero-button-secondary:hover, .hero-button-info:hover {
+        background-color: rgba(109, 109, 110, 0.4);
+    }
+    
+    /* Content Sections */
+    .content-section {
+        padding: 0 4%;
+        margin-bottom: 40px;
+    }
+    
     .section-header {
         display: flex;
         justify-content: space-between;
@@ -112,43 +223,117 @@
         color: #b3b3b3;
         text-decoration: underline;
     }
+    
+    .content-row {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding: 10px 0;
+        scrollbar-width: none;
+    }
+    
+    .content-row::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .content-item {
+        flex: 0 0 auto;
+        width: 200px;
+        transition: transform 0.3s ease;
+    }
+    
+    .content-item:hover {
+        transform: scale(1.05);
+        z-index: 2;
+    }
+    
+    .content-item {
+        position: relative;
+        border-radius: 4px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+        aspect-ratio: 2/3;
+        cursor: pointer;
+    }
+    
+    .content-item img {
+        width: 100%;
+        height: 100%;
+        border-radius: 4px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+    
+    .content-item:hover img {
+        transform: scale(1.1);
+    }
+    
+    .content-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 15px;
+    }
+    
+    .content-item:hover .content-overlay {
+        opacity: 1;
+    }
+    
+    .content-details {
+        transform: translateY(20px);
+        transition: transform 0.3s ease;
+    }
+    
+    .content-item:hover .content-details {
+        transform: translateY(0);
+    }
+    
+    .content-details h3 {
+        font-size: 1rem;
+        margin: 0 0 5px;
+        color: white;
+    }
+    
+    .content-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+        color: #46d369;
+        margin-bottom: 5px;
+    }
+    
+    .content-meta span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .content-meta .maturity {
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        padding: 0 4px;
+        font-size: 0.7rem;
+    }
+    
+    .content-genres {
+        font-size: 0.8rem;
+        color: #b3b3b3;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-{% if featured_movies %}
-<section class="hero-section" style="background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 100%), url('{{ featured_movies.0.banner_image.url }}') no-repeat center center/cover;">
-    <div class="hero-content">
-        <h1 class="hero-title">{{ featured_movies.0.title }}</h1>
-        <div class="hero-meta">
-            <span class="match">98% Match</span>
-            <span class="maturity">{{ featured_movies.0.get_maturity_rating_display|default:"16+" }}</span>
-            <span>{{ featured_movies.0.release_date|date:"Y" }}</span>
-            {% if featured_movies.0.content_type == 'movie' %}
-                <span>{{ featured_movies.0.duration }}m</span>
-            {% else %}
-                <span>{{ featured_movies.0.seasons.count }} Seasons</span>
-            {% endif %}
-            <span>HD</span>
-        </div>
-        <p class="hero-description">{{ featured_movies.0.description|truncatewords:30 }}</p>
-        <div class="hero-actions">
-            <a href="{% url 'movies:watch_movie' featured_movies.0.id %}" class="hero-button hero-button-primary">
-                <i class="fas fa-play"></i> Play
-            </a>
-            <button class="hero-button hero-button-secondary" id="addToMyList" data-movie-id="{{ featured_movies.0.id }}">
-                <i class="fas fa-plus"></i> My List
-            </button>
-            <button class="hero-button hero-button-info" id="infoButton" data-movie-id="{{ featured_movies.0.id }}">
-                <i class="fas fa-info-circle"></i> Info
-            </button>
-        </div>
-    </div>
-    <div class="hero-fade"></div>
-</section>
-{% endif %}
-
 <!-- Genre Navigation -->
 <nav class="genre-nav">
     <div class="container">
@@ -178,126 +363,71 @@
 
 <!-- Main Content -->
 <div class="content-wrapper">
-    <!-- Featured Content -->
-    {% if featured_movies|length > 1 %}
-    <section class="content-section">
-        <div class="section-header">
-            <h2 class="section-title">Featured</h2>
-            <a href="{% url 'movies:search_movies' %}?featured=true" class="view-all">View All</a>
-        </div>
-        <div class="content-row">
-            {% for movie in featured_movies|slice:"1:6" %}
-            <div class="content-item">
-                <div class="movie-card">
-                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
-                        <img src="{{ movie.thumbnail.url }}" alt="{{ movie.title }}" class="img-fluid">
-                        <div class="card-overlay">
-                            <h3 class="card-title">{{ movie.title }}</h3>
-                            <div class="card-meta">
-                                <span>{{ movie.release_date|date:"Y" }}</span>
-                                {% if movie.content_type == 'movie' %}
-                                    <span>{{ movie.duration }}m</span>
-                                {% else %}
-                                    <span>{{ movie.seasons.count }} Seasons</span>
-                                {% endif %}
-                            </div>
-                            <div class="card-actions">
-                                <a href="{% url 'movies:watch_movie' movie.id %}" class="btn btn-sm btn-danger">
-                                    <i class="fas fa-play"></i>
-                                </a>
-                                <button class="btn btn-sm btn-outline-light add-to-list" data-movie-id="{{ movie.id }}">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </a>
-                </div>
+    <!-- Hero Section with Featured Content -->
+    {% if featured_movies|length > 0 %}
+    <section class="hero-section" style="background-image: linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 100%), url('{{ featured_movies.0.banner_image.url }}');">
+        <div class="hero-content">
+            <h1 class="hero-title">{{ featured_movies.0.title }}</h1>
+            <div class="hero-meta">
+                <span class="match">98% Match</span>
+                <span class="maturity">{{ featured_movies.0.get_maturity_rating_display|default:"16+" }}</span>
+                <span>{{ featured_movies.0.release_date|date:"Y" }}</span>
+                {% if featured_movies.0.content_type == 'movie' %}
+                    <span>{{ featured_movies.0.duration }}m</span>
+                {% else %}
+                    <span>{{ featured_movies.0.seasons.count }} Seasons</span>
+                {% endif %}
+                <span>HD</span>
             </div>
-            {% endfor %}
+            <p class="hero-description">{{ featured_movies.0.overview|truncatechars:250 }}</p>
+            <div class="hero-actions">
+                <a href="{% url 'movies:watch_movie' featured_movies.0.id %}" class="hero-button hero-button-primary">
+                    <i class="fas fa-play"></i> Play
+                </a>
+                <button class="hero-button hero-button-secondary" id="addToMyList" data-movie-id="{{ featured_movies.0.id }}">
+                    <i class="fas fa-plus"></i> My List
+                </button>
+                <button class="hero-button hero-button-info" id="infoButton" data-movie-id="{{ featured_movies.0.id }}">
+                    <i class="fas fa-info-circle"></i> Info
+                </button>
+            </div>
         </div>
     </section>
     {% endif %}
-    
-    <!-- Trending Now -->
-    {% if trending_movies %}
+
+    <!-- Trending Now Section -->
     <section class="content-section">
         <div class="section-header">
             <h2 class="section-title">Trending Now</h2>
             <a href="{% url 'movies:search_movies' %}?sort=trending" class="view-all">View All</a>
         </div>
-        <div class="content-row">
-            {% for movie in trending_movies %}
+        <div class="content-row trending-row">
+            {% for movie in trending_movies|slice:":10" %}
             <div class="content-item">
-                <div class="movie-card">
-                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
-                        <img src="{{ movie.thumbnail.url }}" alt="{{ movie.title }}" class="img-fluid">
-                        <div class="card-overlay">
-                            <h3 class="card-title">{{ movie.title }}</h3>
-                            <div class="card-meta">
-                                <span>{{ movie.release_date|date:"Y" }}</span>
-                                {% if movie.content_type == 'movie' %}
-                                    <span>{{ movie.duration }}m</span>
-                                {% else %}
-                                    <span>{{ movie.seasons.count }} Seasons</span>
-                                {% endif %}
+                <a href="{% url 'movies:movie_detail' movie.id %}" class="movie-link">
+                    <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="img-fluid">
+                    <div class="content-overlay">
+                        <div class="content-details">
+                            <h3>{{ movie.title }}</h3>
+                            <div class="content-meta">
+                                <span class="match">{{ movie.vote_average|floatformat:0 }}% Match</span>
+                                <span class="maturity">{% if movie.adult %}+18{% else %}+13{% endif %}</span>
+                                <span class="duration">{{ movie.runtime|default:"120" }}m</span>
                             </div>
-                            <div class="card-actions">
-                                <a href="{% url 'movies:watch_movie' movie.id %}" class="btn btn-sm btn-danger">
-                                    <i class="fas fa-play"></i>
-                                </a>
-                                <button class="btn btn-sm btn-outline-light add-to-list" data-movie-id="{{ movie.id }}">
-                                    <i class="fas fa-plus"></i>
-                                </button>
+                            <div class="content-genres">
+                                {% for genre in movie.genres.all|slice:":3" %}
+                                    <span>{{ genre.name }}</span>
+                                    {% if not forloop.last %}<span>•</span>{% endif %}
+                                {% endfor %}
                             </div>
                         </div>
-                    </a>
-                </div>
+                    </div>
+                </a>
             </div>
             {% endfor %}
         </div>
     </section>
-    {% endif %}
-    
-    <!-- Popular on AIFLIX -->
-    {% if popular_movies %}
-    <section class="content-section">
-        <div class="section-header">
-            <h2 class="section-title">Popular on AIFLIX</h2>
-            <a href="{% url 'movies:search_movies' %}?sort=popular" class="view-all">View All</a>
-        </div>
-        <div class="content-row">
-            {% for movie in popular_movies %}
-            <div class="content-item">
-                <div class="movie-card">
-                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
-                        <img src="{{ movie.thumbnail.url }}" alt="{{ movie.title }}" class="img-fluid">
-                        <div class="card-overlay">
-                            <h3 class="card-title">{{ movie.title }}</h3>
-                            <div class="card-meta">
-                                <span>{{ movie.release_date|date:"Y" }}</span>
-                                {% if movie.content_type == 'movie' %}
-                                    <span>{{ movie.duration }}m</span>
-                                {% else %}
-                                    <span>{{ movie.seasons.count }} Seasons</span>
-                                {% endif %}
-                            </div>
-                            <div class="card-actions">
-                                <a href="{% url 'movies:watch_movie' movie.id %}" class="btn btn-sm btn-danger">
-                                    <i class="fas fa-play"></i>
-                                </a>
-                                <button class="btn btn-sm btn-outline-light add-to-list" data-movie-id="{{ movie.id }}">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-    
+
     <!-- Recently Added -->
     {% if recent_movies %}
     <section class="content-section">
@@ -306,38 +436,33 @@
             <a href="{% url 'movies:search_movies' %}?sort=newest" class="view-all">View All</a>
         </div>
         <div class="content-row">
-            {% for movie in recent_movies %}
+            {% for movie in recent_movies|slice:":10" %}
             <div class="content-item">
-                <div class="movie-card">
-                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
-                        <img src="{{ movie.thumbnail.url }}" alt="{{ movie.title }}" class="img-fluid">
-                        <div class="card-overlay">
-                            <h3 class="card-title">{{ movie.title }}</h3>
-                            <div class="card-meta">
-                                <span>{{ movie.release_date|date:"Y" }}</span>
-                                {% if movie.content_type == 'movie' %}
-                                    <span>{{ movie.duration }}m</span>
-                                {% else %}
-                                    <span>{{ movie.seasons.count }} Seasons</span>
-                                {% endif %}
+                <a href="{% url 'movies:movie_detail' movie.id %}" class="movie-link">
+                    <img src="{{ movie.poster_url|default:movie.thumbnail.url }}" alt="{{ movie.title }}" class="img-fluid">
+                    <div class="content-overlay">
+                        <div class="content-details">
+                            <h3>{{ movie.title }}</h3>
+                            <div class="content-meta">
+                                <span class="match">{{ movie.vote_average|floatformat:0 }}% Match</span>
+                                <span class="maturity">{% if movie.adult %}+18{% else %}+13{% endif %}</span>
+                                <span class="duration">{{ movie.duration|default:120 }}m</span>
                             </div>
-                            <div class="card-actions">
-                                <a href="{% url 'movies:watch_movie' movie.id %}" class="btn btn-sm btn-danger">
-                                    <i class="fas fa-play"></i>
-                                </a>
-                                <button class="btn btn-sm btn-outline-light add-to-list" data-movie-id="{{ movie.id }}">
-                                    <i class="fas fa-plus"></i>
-                                </button>
+                            <div class="content-genres">
+                                {% for genre in movie.genres.all|slice:":3" %}
+                                    <span>{{ genre.name }}</span>
+                                    {% if not forloop.last %}<span>•</span>{% endif %}
+                                {% endfor %}
                             </div>
                         </div>
-                    </a>
-                </div>
+                    </div>
+                </a>
             </div>
             {% endfor %}
         </div>
     </section>
     {% endif %}
-    
+
     <!-- Movies -->
     {% if movies %}
     <section class="content-section">
@@ -346,235 +471,27 @@
             <a href="{% url 'movies:search_movies' %}?type=movie" class="view-all">View All</a>
         </div>
         <div class="content-row">
-            {% for movie in movies %}
+            {% for movie in movies|slice:":10" %}
             <div class="content-item">
-                <div class="movie-card">
-                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
-                        <img src="{{ movie.thumbnail.url }}" alt="{{ movie.title }}" class="img-fluid">
-                        <div class="card-overlay">
-                            <h3 class="card-title">{{ movie.title }}</h3>
-                            <div class="card-meta">
-                                <span>{{ movie.release_date|date:"Y" }}</span>
-                                <span>{{ movie.duration }}m</span>
+                <a href="{% url 'movies:movie_detail' movie.id %}" class="movie-link">
+                    <img src="{{ movie.poster_url|default:movie.thumbnail.url }}" alt="{{ movie.title }}" class="img-fluid">
+                    <div class="content-overlay">
+                        <div class="content-details">
+                            <h3>{{ movie.title }}</h3>
+                            <div class="content-meta">
+                                <span class="match">{{ movie.vote_average|floatformat:0 }}% Match</span>
+                                <span class="maturity">{% if movie.adult %}+18{% else %}+13{% endif %}</span>
+                                <span class="duration">{{ movie.duration|default:120 }}m</span>
                             </div>
-                            <div class="card-actions">
-                                <a href="{% url 'movies:watch_movie' movie.id %}" class="btn btn-sm btn-danger">
-                                    <i class="fas fa-play"></i>
-                                </a>
-                                <button class="btn btn-sm btn-outline-light add-to-list" data-movie-id="{{ movie.id }}">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-    
-    <!-- TV Series -->
-    {% if series %}
-    <section class="content-section">
-        <div class="section-header">
-            <h2 class="section-title">TV Series</h2>
-            <a href="{% url 'movies:search_movies' %}?type=series" class="view-all">View All</a>
-        </div>
-        <div class="content-row">
-            {% for show in series %}
-            <div class="content-item">
-                <div class="movie-card">
-                    <a href="{% url 'movies:movie_detail' show.id show.slug %}">
-                        <img src="{{ show.thumbnail.url }}" alt="{{ show.title }}" class="img-fluid">
-                        <div class="card-overlay">
-                            <h3 class="card-title">{{ show.title }}</h3>
-                            <div class="card-meta">
-                                <span>{{ show.release_date|date:"Y" }}</span>
-                                <span>{{ show.seasons.count }} Seasons</span>
-                            </div>
-                            <div class="card-actions">
-                                <a href="{% url 'movies:watch_movie' show.id %}" class="btn btn-sm btn-danger">
-                                    <i class="fas fa-play"></i>
-                                </a>
-                                <button class="btn btn-sm btn-outline-light add-to-list" data-movie-id="{{ show.id }}">
-                                    <i class="fas fa-plus"></i>
-                                </button>
+                            <div class="content-genres">
+                                {% for genre in movie.genres.all|slice:":3" %}
+                                    <span>{{ genre.name }}</span>
+                                    {% if not forloop.last %}<span>•</span>{% endif %}
+                                {% endfor %}
                             </div>
                         </div>
-                    </a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-    
-    <!-- Documentaries -->
-    {% if documentaries %}
-    <section class="content-section">
-        <div class="section-header">
-            <h2 class="section-title">Documentaries</h2>
-            <a href="{% url 'movies:search_movies' %}?type=documentary" class="view-all">View All</a>
-        </div>
-        <div class="content-row">
-            {% for doc in documentaries %}
-            <div class="content-item">
-                <div class="movie-card">
-                    <a href="{% url 'movies:movie_detail' doc.id doc.slug %}">
-                        <img src="{{ doc.thumbnail.url }}" alt="{{ doc.title }}" class="img-fluid">
-                        <div class="card-overlay">
-                            <h3 class="card-title">{{ doc.title }}</h3>
-                            <div class="card-meta">
-                                <span>{{ doc.release_date|date:"Y" }}</span>
-                                <span>{{ doc.duration }}m</span>
-                            </div>
-                            <div class="card-actions">
-                                <a href="{% url 'movies:watch_movie' doc.id %}" class="btn btn-sm btn-danger">
-                                    <i class="fas fa-play"></i>
-                                </a>
-                                <button class="btn btn-sm btn-outline-light add-to-list" data-movie-id="{{ doc.id }}">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-    <!-- Continue Watching -->
-    {% if watch_history %}
-    <section class="content-section">
-        <h2 class="section-title">Continue Watching</h2>
-        <div class="content-row">
-            {% for item in watch_history %}
-            <div class="content-item">
-                <div class="movie-card">
-                    <a href="{% url 'movies:watch_movie' item.movie.id %}">
-                        <img src="{{ item.movie.thumbnail.url }}" alt="{{ item.movie.title }}" class="img-fluid">
-                        <div class="progress" style="height: 4px; margin-top: -4px; background: rgba(128, 128, 128, 0.3);">
-                            <div class="progress-bar bg-danger" 
-                                 role="progressbar" 
-                                 style="width: {{ item.progress }}%"
-                                 aria-valuenow="{{ item.progress }}" 
-                                 aria-valuemin="0" 
-                                 aria-valuemax="100">
-                            </div>
-                        </div>
-                        <div class="card-overlay">
-                            <div class="card-actions">
-                                <button class="btn btn-sm btn-danger">
-                                    <i class="fas fa-play"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-light">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-
-    <!-- Trending Now -->
-    {% if trending_movies %}
-    <section class="content-section">
-        <h2 class="section-title">Trending Now</h2>
-        <div class="content-row">
-            {% for movie in trending_movies|slice:":10" %}
-            <div class="content-item">
-                <div class="movie-card">
-                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
-                        <img src="{{ movie.thumbnail.url }}" alt="{{ movie.title }}" class="img-fluid">
-                        <div class="card-overlay">
-                            <h3 class="card-title">{{ movie.title }}</h3>
-                            <div class="card-meta">
-                                <span>{{ movie.release_date|date:"Y" }}</span>
-                                <span>{{ movie.duration }}m</span>
-                            </div>
-                            <div class="card-actions">
-                                <a href="{% url 'movies:watch_movie' movie.id %}" class="btn btn-sm btn-danger">
-                                    <i class="fas fa-play"></i>
-                                </a>
-                                <button class="btn btn-sm btn-outline-light add-to-list" data-movie-id="{{ movie.id }}">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-
-    <!-- Popular on AIFLIX -->
-    {% if popular_movies %}
-    <section class="content-section">
-        <h2 class="section-title">Popular on AIFLIX</h2>
-        <div class="content-row">
-            {% for movie in popular_movies|slice:":10" %}
-            <div class="content-item">
-                <div class="movie-card">
-                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
-                        <img src="{{ movie.thumbnail.url }}" alt="{{ movie.title }}" class="img-fluid">
-                        <div class="card-overlay">
-                            <h3 class="card-title">{{ movie.title }}</h3>
-                            <div class="card-meta">
-                                <span>{{ movie.release_date|date:"Y" }}</span>
-                                <span>{{ movie.duration }}m</span>
-                            </div>
-                            <div class="card-actions">
-                                <a href="{% url 'movies:watch_movie' movie.id %}" class="btn btn-sm btn-danger">
-                                    <i class="fas fa-play"></i>
-                                </a>
-                                <button class="btn btn-sm btn-outline-light add-to-list" data-movie-id="{{ movie.id }}">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-
-    <!-- Recently Added -->
-    {% if recent_movies %}
-    <section class="content-section">
-        <h2 class="section-title">Recently Added</h2>
-        <div class="content-row">
-            {% for movie in recent_movies|slice:":10" %}
-            <div class="content-item">
-                <div class="movie-card">
-                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
-                        <img src="{{ movie.thumbnail.url }}" alt="{{ movie.title }}" class="img-fluid">
-                        <div class="card-overlay">
-                            <h3 class="card-title">{{ movie.title }}</h3>
-                            <div class="card-meta">
-                                <span>{{ movie.release_date|date:"Y" }}</span>
-                                <span>{{ movie.duration }}m</span>
-                            </div>
-                            <div class="card-actions">
-                                <a href="{% url 'movies:watch_movie' movie.id %}" class="btn btn-sm btn-danger">
-                                    <i class="fas fa-play"></i>
-                                </a>
-                                <button class="btn btn-sm btn-outline-light add-to-list" data-movie-id="{{ movie.id }}">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </a>
-                </div>
+                    </div>
+                </a>
             </div>
             {% endfor %}
         </div>
@@ -625,87 +542,6 @@
         </div>
     </div>
 </footer>
-
-{% if trending_movies %}
-    <section class="mb-5">
-        <h2 class="section-title mb-3">Trending Now</h2>
-        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
-            {% for movie in trending_movies %}
-            <div class="col">
-                <div class="movie-card">
-                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
-                        <img src="{{ movie.thumbnail.url }}" class="img-fluid rounded" alt="{{ movie.title }}">
-                    </a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-
-    <!-- Movies -->
-    {% if movies %}
-    <section class="mb-5">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="section-title mb-0">Movies</h2>
-            <a href="{% url 'movies:search_movies' %}?type=movie" class="btn btn-sm btn-outline-light">View All</a>
-        </div>
-        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
-            {% for movie in movies %}
-            <div class="col">
-                <div class="movie-card">
-                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
-                        <img src="{{ movie.thumbnail.url }}" class="img-fluid rounded" alt="{{ movie.title }}">
-                    </a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-
-    <!-- TV Series -->
-    {% if series %}
-    <section class="mb-5">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="section-title mb-0">TV Series</h2>
-            <a href="{% url 'movies:search_movies' %}?type=series" class="btn btn-sm btn-outline-light">View All</a>
-        </div>
-        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
-            {% for show in series %}
-            <div class="col">
-                <div class="movie-card">
-                    <a href="{% url 'movies:movie_detail' show.id show.slug %}">
-                        <img src="{{ show.thumbnail.url }}" class="img-fluid rounded" alt="{{ show.title }}">
-                    </a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-
-    <!-- Documentaries -->
-    {% if documentaries %}
-    <section class="mb-5">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="section-title mb-0">Documentaries</h2>
-            <a href="{% url 'movies:search_movies' %}?type=documentary" class="btn btn-sm btn-outline-light">View All</a>
-        </div>
-        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
-            {% for doc in documentaries %}
-            <div class="col">
-                <div class="movie-card">
-                    <a href="{% url 'movies:movie_detail' doc.id doc.slug %}">
-                        <img src="{{ doc.thumbnail.url }}" class="img-fluid rounded" alt="{{ doc.title }}">
-                    </a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-</div>
 
 {% endblock %}
 

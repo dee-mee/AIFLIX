@@ -1,3 +1,5 @@
+{% load active_link %}
+
 <nav class="navbar navbar-expand-lg navbar-dark {% if not transparent %}bg-dark{% endif %} py-3" {% if transparent %}style="background: linear-gradient(to bottom, rgba(0,0,0,0.7) 10%, transparent);"{% endif %}>
     <div class="container">
         <a class="navbar-brand me-4" href="{% url 'movies:home' %}">
@@ -11,20 +13,20 @@
         <div class="collapse navbar-collapse" id="mainNavbar">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link{% if request.resolver_match.url_name == 'home' %} active{% endif %}" 
+                    <a class="nav-link {% active_link 'movies:home' %}" 
                        href="{% url 'movies:home' %}">
                         Home
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link{% if request.resolver_match.url_name == 'browse' %} active{% endif %}" 
+                    <a class="nav-link {% active_link 'movies:browse' %}" 
                        href="{% url 'movies:browse' %}">
                         Browse
                     </a>
                 </li>
                 {% if user.is_authenticated %}
                 <li class="nav-item">
-                    <a class="nav-link{% if request.resolver_match.url_name == 'my_list' %} active{% endif %}" 
+                    <a class="nav-link {% active_link 'profiles:my_list' %}" 
                        href="{% url 'profiles:my_list' %}">
                         My List
                     </a>
@@ -34,7 +36,7 @@
             
             <div class="d-flex align-items-center">
                 <div class="search-container me-3">
-                    <form action="{% url 'movies:search' %}" method="get" class="d-flex">
+                    <form action="{% url 'movies:search_movies' %}" method="get" class="d-flex">
                         <div class="input-group">
                             <input type="text" 
                                    name="q" 
@@ -73,7 +75,7 @@
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                         <li>
                             <a class="dropdown-item" href="{% url 'profiles:profile_list' %}">
-                                <i class="fas fa-user-circle me-2"></i> Manage Profiles
+                                <i class="fas fa-user-circle me-2"></i> Profiles
                             </a>
                         </li>
                         <li>
