@@ -25,11 +25,18 @@ def user_login(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            next_url = request.POST.get('next', 'movies:home')
+            next_url = request.POST.get('next')
+            if not next_url:
+                return redirect('movies:home')
             return redirect(next_url)
     else:
         form = CustomAuthenticationForm()
-    return render(request, 'accounts/login_netflix.html', {'form': form})
+    
+    context = {
+        'form': form,
+        'next': request.GET.get('next', '')
+    }
+    return render(request, 'accounts/login_netflix.html', context)
 
 @login_required
 def profile(request):

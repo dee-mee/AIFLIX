@@ -36,7 +36,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark {% if not transparent %}bg-dark{% endif %} py-3" {% if transparent %}style="background: linear-gradient(to bottom, rgba(0,0,0,0.7) 10%, transparent);"{% endif %}>
     <div class="container">
-        <a class="navbar-brand me-4" href="{% url 'movies:home' %}">
+        <a class="navbar-brand me-4" href="{% url 'landing' %}">
             <h1 class="h3 mb-0 text-danger fw-bold">AIFLIX</h1>
         </a>
         
@@ -47,9 +47,33 @@
         <div class="collapse navbar-collapse" id="mainNavbar">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active fw-bold{% endif %}" 
-                       href="{% url 'movies:home' %}">
-                        Home
+                    <a class="nav-link {% if request.resolver_match.url_name == 'landing' %}active fw-bold{% endif %}" 
+                       href="{% url 'landing' %}">
+                        <i class="fas fa-home me-1"></i> Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'browse' %}active fw-bold{% endif %}" 
+                       href="{% url 'movies:browse' %}">
+                        <i class="fas fa-compass me-1"></i> Browse
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'movies' %}active fw-bold{% endif %}" 
+                       href="{% url 'movies:movies' %}">
+                        <i class="fas fa-film me-1"></i> Movies
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'tv_shows' %}active fw-bold{% endif %}" 
+                       href="{% url 'movies:tv_shows' %}">
+                        TV Shows
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'new_popular' %}active fw-bold{% endif %}" 
+                       href="{% url 'movies:new_popular' %}">
+                        <i class="fas fa-fire me-1"></i> New & Popular
                     </a>
                 </li>
                 <li class="nav-item">
@@ -65,17 +89,12 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.GET.type == 'movie' or request.GET.content_type == 'movie' or '/movies/' in request.path %}active fw-bold{% endif %}" 
-                       href="{% url 'movies:browse' %}?content_type=movie">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'movies' or request.GET.content_type == 'movie' and request.resolver_match.url_name == 'browse' %}active fw-bold{% endif %}" 
+                       href="{% url 'movies:movies' %}">
                         Movies
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.GET.sort == 'trending' or request.GET.sort == 'popular' %}active fw-bold{% endif %}" 
-                       href="{% url 'movies:browse' %}?sort=trending">
-                        New & Popular
-                    </a>
-                </li>
+
                 {% if user.is_authenticated %}
                 <li class="nav-item">
                     <a class="nav-link {% if request.resolver_match.url_name == 'my_list' %}active fw-bold{% endif %}" 
@@ -136,6 +155,11 @@
                             </a>
                         </li>
                         <li><hr class="dropdown-divider"></li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'tv-shows' in request.path %}active{% endif %}" href="{% url 'movies:tv_shows' %}">
+                                <i class="fas fa-tv me-1"></i> TV Shows
+                            </a>
+                        </li>
                         <li>
                             <a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">
                                 <i class="fas fa-sign-out-alt me-2"></i> Sign Out

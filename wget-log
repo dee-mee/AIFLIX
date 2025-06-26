@@ -1,0 +1,11 @@
+--2025-06-27 01:05:37--  https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?ixlib=rb-4.0.3
+Resolving images.unsplash.com (images.unsplash.com)... 151.101.66.208, 151.101.2.208, 151.101.194.208, ...
+Connecting to images.unsplash.com (images.unsplash.com)|151.101.66.208|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 715017 (698K) [image/jpeg]
+Saving to: ‘/home/deemee/Documents/AIFLIX/static/img/hero-bg.jpg’
+
+      /home/   0%       0  --.-KB/s                    /home/d  13%  94.28K   444KB/s                   /home/de  24% 174.28K   226KB/s                  /home/dee  31% 222.28K   217KB/s                 /home/deem  63% 446.28K   326KB/s                /home/deeme  82% 574.28K   364KB/s               /home/deemee  93% 654.28K   342KB/s               /home/deemee 100% 698.26K   364KB/s    in 1.9s    
+
+2025-06-27 01:05:39 (364 KB/s) - ‘/home/deemee/Documents/AIFLIX/static/img/hero-bg.jpg’ saved [715017/715017]
+

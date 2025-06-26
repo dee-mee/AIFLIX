@@ -1,0 +1,22 @@
+{% if items %}
+<section class="content-section">
+    <h2 class="section-title">{{ title }}</h2>
+    <div class="content-grid">
+        {% for item in items %}
+        <a href="{% url 'movies:watch_movie' pk=item.id %}" class="content-card">
+            <img src="{{ item.thumbnail.url }}" alt="{{ item.title }}" loading="lazy">
+            <div class="card-badge">{{ item.content_type|title }}</div>
+            <div class="card-info">
+                <h3 class="card-title">{{ item.title }}</h3>
+                <div class="card-meta">
+                    <span>{{ item.release_date|date:"Y" }}</span>
+                    {% if item.imdb_rating %}
+                    <span class="card-rating">★ {{ item.imdb_rating }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}

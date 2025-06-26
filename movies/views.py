@@ -128,105 +128,193 @@ def tv_shows(request):
     }
     return render(request, 'movies/tv_shows.html', context)
 
-def home(request):
-    """Home page with featured and trending content."""
-    # Get genre filter if any
-    genre_slug = request.GET.get('genre')
-    genre_filter = {}
+def new_popular(request):
+    """New & Popular page with trending, popular, and upcoming content."""
+    # Get trending content (movies and shows)
+    trending = get_base_queryset().filter(
+        is_trending=True
+    ).order_by('-release_date')[:20]
     
-    if genre_slug:
-        try:
-            genre = Genre.objects.get(slug=genre_slug)
-            genre_filter = {'genres': genre}
-        except Genre.DoesNotExist:
-            raise Http404("Genre not found")
+    # Get popular content (by IMDB rating)
+    popular = get_base_queryset().order_by('-imdb_rating')[:20]
     
-    # Base queryset with common filters
-    base_queryset = get_base_queryset()
+    # Get new releases (released in the last 30 days)
+    from datetime import datetime, timedelta
+    thirty_days_ago = datetime.now() - timedelta(days=30)
+    new_releases = get_base_queryset().filter(
+        release_date__gte=thirty_days_ago
+    ).order_by('-release_date')[:20]
     
-    # Apply genre filter if specified
-    if genre_filter:
-        base_queryset = base_queryset.filter(**genre_filter)
-    
-    # Featured content
-    featured_movies = base_queryset.filter(
-        is_featured=True
-    ).order_by('-release_date')
-    
-    # If no genre filter, show trending movies
-    if not genre_filter:
-        trending_movies = base_queryset.filter(
-            is_trending=True
-        ).order_by('-is_trending', '-release_date')[:10]
-    else:
-        trending_movies = base_queryset.order_by('-release_date')[:10]
-    
-    # Popular content (based on ratings and release date)
-    popular_movies = base_queryset.order_by(
-        '-imdb_rating',  # Sort by IMDB rating (highest first)
-        '-release_date'  # Then by newest first
-    )[:10]
-    
-    # Recently added content
-    recent_movies = base_queryset.order_by('-created_at')[:10]
-    
-    # Group by content type if no genre filter
-    if not genre_filter:
-        movies = base_queryset.filter(
-            content_type='movie'
-        ).order_by('-release_date')[:10]
-        
-        series = base_queryset.filter(
-            content_type='series'
-        ).order_by('-release_date')[:10]
-        
-        documentaries = base_queryset.filter(
-            content_type='documentary'
-        ).order_by('-release_date')[:10]
-    else:
-        # If genre filter is applied, don't show these sections
-        movies = series = documentaries = Movie.objects.none()
-    
-    # Get all genres for navigation
-    all_genres = Genre.objects.all().order_by('name')
-    
-    # Get popular genres (genres with most movies)
-    popular_genres = Genre.objects.annotate(
-        num_movies=Count('movies', filter=Q(movies__is_active=True))
-    ).filter(
-        num_movies__gt=0
-    ).order_by('-num_movies')[:8]
-    
-    # Get watch history for the current profile
-    watch_history = []
-    if 'profile_id' in request.session and not genre_filter:
-        try:
-            watch_history = WatchHistory.objects.filter(
-                profile_id=request.session['profile_id'],
-                movie__isnull=False
-            ).select_related('movie').order_by('-watched_at')[:10]
-            
-            # Filter out any None movies and ensure they're active
-            watch_history = [
-                item for item in watch_history 
-                if hasattr(item, 'movie') and hasattr(item.movie, 'is_active') and item.movie.is_active
-            ][:10]
-        except (WatchHistory.DoesNotExist, KeyError, AttributeError):
-            pass
+    # Get coming soon content (release date in the future)
+    coming_soon = get_base_queryset().filter(
+        release_date__gt=datetime.now()
+    ).order_by('release_date')[:20]
     
     context = {
-        'featured_movies': featured_movies,
-        'trending_movies': trending_movies,
-        'popular_movies': popular_movies,
-        'recent_movies': recent_movies,
-        'movies': movies,
-        'series': series,
-        'documentaries': documentaries,
-        'watch_history': watch_history,
-        'all_genres': all_genres,
-        'popular_genres': popular_genres,
+        'trending': trending,
+        'popular': popular,
+        'new_releases': new_releases,
+        'coming_soon': coming_soon,
     }
+    return render(request, 'movies/new_popular.html', context)
+
+def movies(request):
+    """Movies landing page with featured and trending movies."""
+    from django.db.models import Count, Q
+    from datetime import datetime, timedelta
     
+    # Get featured movie (trending or latest)
+    featured_movie = get_base_queryset().filter(
+        content_type='movie',
+        is_trending=True
+    ).exclude(id__isnull=True).order_by('-release_date').first()
+    
+    if not featured_movie:
+        featured_movie = get_base_queryset().filter(
+            content_type='movie'
+        ).exclude(id__isnull=True).order_by('-release_date').first()
+    
+    # Get trending movies (excluding featured)
+    trending = get_base_queryset().filter(
+        content_type='movie',
+        is_trending=True,
+        id__isnull=False
+    ).exclude(id=featured_movie.id if featured_movie else None)[:12]
+    
+    # Get latest releases
+    latest = get_base_queryset().filter(
+        content_type='movie',
+        id__isnull=False
+    ).order_by('-release_date')[:12]
+    
+    # Get top rated movies
+    top_rated = get_base_queryset().filter(
+        content_type='movie',
+        imdb_rating__isnull=False,
+        id__isnull=False
+    ).order_by('-imdb_rating')[:12]
+    
+    # Get action movies (example genre)
+    action_movies = get_base_queryset().filter(
+        content_type='movie',
+        genres__name__icontains='action',
+        id__isnull=False
+    ).distinct()[:12]
+    
+    # Get all genres for filter
+    from .models import Genre
+    genres = Genre.objects.filter(
+        movies__content_type='movie'
+    ).distinct().annotate(
+        num_movies=Count('movies')
+    ).order_by('-num_movies')
+    
+    # Apply genre filter if specified
+    genre_filter = request.GET.get('genre')
+    if genre_filter:
+        trending = trending.filter(genres__slug=genre_filter)
+        latest = latest.filter(genres__slug=genre_filter)
+        top_rated = top_rated.filter(genres__slug=genre_filter)
+    
+    # Apply sorting
+    sort_by = request.GET.get('sort', 'trending')
+    if sort_by == 'latest':
+        trending = trending.order_by('-release_date')
+    elif sort_by == 'rating':
+        trending = trending.order_by('-imdb_rating')
+    elif sort_by == 'year':
+        trending = trending.order_by('-release_date__year', '-imdb_rating')
+    elif sort_by == 'title':
+        trending = trending.order_by('title')
+    
+    context = {
+        'featured_movie': featured_movie,
+        'trending': trending,
+        'latest': latest,
+        'top_rated': top_rated,
+        'action_movies': action_movies,
+        'genres': genres,
+    }
+    return render(request, 'movies/movies.html', context)
+
+
+def home(request):
+    """Movies landing page with featured and trending movies."""
+    from django.db.models import Count, Q
+    from datetime import datetime, timedelta
+    
+    # Get featured movie (trending or latest)
+    featured_movie = get_base_queryset().filter(
+        content_type='movie',
+        is_trending=True
+    ).exclude(id__isnull=True).order_by('-release_date').first()
+    
+    if not featured_movie:
+        featured_movie = get_base_queryset().filter(
+            content_type='movie'
+        ).exclude(id__isnull=True).order_by('-release_date').first()
+    
+    # Get trending movies (excluding featured)
+    trending = get_base_queryset().filter(
+        content_type='movie',
+        is_trending=True,
+        id__isnull=False
+    ).exclude(id=featured_movie.id if featured_movie else None)[:12]
+    
+    # Get latest releases
+    latest = get_base_queryset().filter(
+        content_type='movie',
+        id__isnull=False
+    ).order_by('-release_date')[:12]
+    
+    # Get top rated movies
+    top_rated = get_base_queryset().filter(
+        content_type='movie',
+        imdb_rating__isnull=False,
+        id__isnull=False
+    ).order_by('-imdb_rating')[:12]
+    
+    # Get action movies (example genre)
+    action_movies = get_base_queryset().filter(
+        content_type='movie',
+        genres__name__icontains='action',
+        id__isnull=False
+    ).distinct()[:12]
+    
+    # Get all genres for filter
+    from .models import Genre
+    genres = Genre.objects.filter(
+        movies__content_type='movie'
+    ).distinct().annotate(
+        num_movies=Count('movies')
+    ).order_by('-num_movies')
+    
+    # Apply genre filter if specified
+    genre_filter = request.GET.get('genre')
+    if genre_filter:
+        trending = trending.filter(genres__slug=genre_filter)
+        latest = latest.filter(genres__slug=genre_filter)
+        top_rated = top_rated.filter(genres__slug=genre_filter)
+    
+    # Apply sorting
+    sort_by = request.GET.get('sort', 'trending')
+    if sort_by == 'latest':
+        trending = trending.order_by('-release_date')
+    elif sort_by == 'rating':
+        trending = trending.order_by('-imdb_rating')
+    elif sort_by == 'year':
+        trending = trending.order_by('-release_date__year', '-imdb_rating')
+    elif sort_by == 'title':
+        trending = trending.order_by('title')
+    
+    context = {
+        'featured_movie': featured_movie,
+        'trending': trending,
+        'latest': latest,
+        'top_rated': top_rated,
+        'action_movies': action_movies,
+        'genres': genres,
+    }
     return render(request, 'movies/home.html', context)
 
 def movie_detail(request, pk, slug=None):

@@ -1,7 +1,7 @@
 {% extends 'base/base.html' %}
 {% load static %}
 
-{% block title %}Home | AIFLIX - Unlimited Movies & TV Shows{% endblock %}
+{% block title %}Movies | AIFLIX{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -532,7 +532,7 @@
 <div class="hero-section">
     <div class="hero-content">
         {% if featured_movie %}
-            <span class="hero-badge">Featured Now on AIFLIX</span>
+            <span class="hero-badge">Featured Movie</span>
             <h1 class="hero-title">{{ featured_movie.title }}</h1>
             <p class="hero-description">{{ featured_movie.overview|default:""|truncatewords:30 }}</p>
             <div class="hero-actions">
@@ -542,14 +542,14 @@
                 </a>
                 {% endif %}
                 {% if featured_movie.id %}
-                <a href="{% url 'home' %}" class="btn-info">
+                <a href="{% url 'movies:movie_detail' pk=featured_movie.id slug=featured_movie.slug|default:'' %}" class="btn-info">
                     <i class="fas fa-info-circle me-2"></i> More Info
                 </a>
                 {% endif %}
             </div>
         {% else %}
-            <h1 class="hero-title">Welcome to AIFLIX</h1>
-            <p class="hero-description">Stream unlimited movies and TV shows. Anytime, anywhere. Start your free trial today!</p>
+            <h1 class="hero-title">Welcome to AIFLIX Movies</h1>
+            <p class="hero-description">Discover the latest and greatest movies in our collection.</p>
             <div class="hero-actions">
                 <a href="{% url 'movies:browse' %}?content_type=movie" class="btn-play">
                     <i class="fas fa-film me-2"></i> Browse All Movies
@@ -576,7 +576,7 @@
             <span class="filter-label">Sort By:</span>
             <select class="filter-select" id="sortFilter">
                 <option value="trending">Trending</option>
-                <option value="latest">New on AIFLIX</option>
+                <option value="latest">Latest Releases</option>
                 <option value="rating">Top Rated</option>
                 <option value="year">Release Year</option>
                 <option value="title">A-Z</option>
@@ -586,10 +586,10 @@
     </div>
 </div>
 
-<!-- Trending Now on AIFLIX Section -->
+<!-- Trending Now Section -->
 <div class="section">
     <div class="section-header">
-        <h2 class="section-title">Trending Now on AIFLIX</h2>
+        <h2 class="section-title">Trending Now</h2>
         <a href="{% url 'movies:browse' %}?sort=trending" class="view-all">View All</a>
     </div>
     <div class="content-grid">
@@ -611,10 +611,10 @@
     </div>
 </div>
 
-<!-- New on AIFLIX Section -->
+<!-- Latest Releases Section -->
 <div class="section">
     <div class="section-header">
-        <h2 class="section-title">New on AIFLIX</h2>
+        <h2 class="section-title">Latest Releases</h2>
         <a href="{% url 'movies:browse' %}?sort=latest" class="view-all">View All</a>
     </div>
     <div class="content-grid">
