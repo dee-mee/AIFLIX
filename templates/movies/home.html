@@ -1,0 +1,789 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}AIFLIX - Watch TV Shows Online, Watch Movies Online{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Genre Navigation */
+    .genre-nav {
+        background-color: #141414;
+        padding: 15px 0;
+        border-bottom: 1px solid #404040;
+        position: sticky;
+        top: 68px;
+        z-index: 900;
+    }
+    
+    .genre-nav .container {
+        display: flex;
+        overflow-x: auto;
+        padding: 0 15px;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    
+    .genre-nav .container::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .genre-nav .nav-item {
+        flex: 0 0 auto;
+        margin-right: 15px;
+    }
+    
+    .genre-nav .nav-link {
+        color: #e5e5e5;
+        padding: 8px 15px;
+        border-radius: 20px;
+        background-color: #2a2a2a;
+        white-space: nowrap;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+    }
+    
+    .genre-nav .nav-link:hover,
+    .genre-nav .nav-link.active,
+    .genre-dropdown-content a.active {
+        background-color: #e50914;
+        color: #ffffff;
+    }
+    
+    /* Genre Dropdown */
+    .genre-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .genre-dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #141414;
+        min-width: 200px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+        z-index: 1;
+        border-radius: 4px;
+        padding: 10px 0;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .genre-dropdown:hover .genre-dropdown-content {
+        display: block;
+    }
+    
+    .genre-dropdown-content a {
+        color: #e5e5e5;
+        padding: 8px 20px;
+        text-decoration: none;
+        display: block;
+        transition: background-color 0.2s, color 0.2s;
+        white-space: nowrap;
+    }
+    
+    .genre-dropdown-content a:hover {
+        background-color: #2a2a2a;
+        color: #ffffff;
+    }
+    
+    /* Section Headers */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #e5e5e5;
+        margin: 0;
+    }
+    
+    .view-all {
+        color: #e5e5e5;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: color 0.2s;
+    }
+    
+    .view-all:hover {
+        color: #b3b3b3;
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+{% if featured_movies %}
+<section class="hero-section" style="background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 100%), url('{{ featured_movies.0.banner_image.url }}') no-repeat center center/cover;">
+    <div class="hero-content">
+        <h1 class="hero-title">{{ featured_movies.0.title }}</h1>
+        <div class="hero-meta">
+            <span class="match">98% Match</span>
+            <span class="maturity">{{ featured_movies.0.get_maturity_rating_display|default:"16+" }}</span>
+            <span>{{ featured_movies.0.release_date|date:"Y" }}</span>
+            {% if featured_movies.0.content_type == 'movie' %}
+                <span>{{ featured_movies.0.duration }}m</span>
+            {% else %}
+                <span>{{ featured_movies.0.seasons.count }} Seasons</span>
+            {% endif %}
+            <span>HD</span>
+        </div>
+        <p class="hero-description">{{ featured_movies.0.description|truncatewords:30 }}</p>
+        <div class="hero-actions">
+            <a href="{% url 'movies:watch_movie' featured_movies.0.id %}" class="hero-button hero-button-primary">
+                <i class="fas fa-play"></i> Play
+            </a>
+            <button class="hero-button hero-button-secondary" id="addToMyList" data-movie-id="{{ featured_movies.0.id }}">
+                <i class="fas fa-plus"></i> My List
+            </button>
+            <button class="hero-button hero-button-info" id="infoButton" data-movie-id="{{ featured_movies.0.id }}">
+                <i class="fas fa-info-circle"></i> Info
+            </button>
+        </div>
+    </div>
+    <div class="hero-fade"></div>
+</section>
+{% endif %}
+
+<!-- Genre Navigation -->
+<nav class="genre-nav">
+    <div class="container">
+        <div class="genre-dropdown">
+            <a href="#" class="nav-link active">
+                <i class="fas fa-bars"></i> Browse All
+            </a>
+            <div class="genre-dropdown-content">
+                <a href="{% url 'movies:home' %}" class="{% if not request.GET.genre %}active{% endif %}">All Genres</a>
+                {% for genre in all_genres %}
+                    <a href="?genre={{ genre.slug }}" class="{% if request.GET.genre == genre.slug %}active{% endif %}">
+                        {{ genre.name }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+        
+        {% for genre in popular_genres %}
+            <div class="nav-item">
+                <a href="?genre={{ genre.slug }}" class="nav-link {% if request.GET.genre == genre.slug %}active{% endif %}">
+                    {{ genre.name }}
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="content-wrapper">
+    <!-- Featured Content -->
+    {% if featured_movies|length > 1 %}
+    <section class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">Featured</h2>
+            <a href="{% url 'movies:search_movies' %}?featured=true" class="view-all">View All</a>
+        </div>
+        <div class="content-row">
+            {% for movie in featured_movies|slice:"1:6" %}
+            <div class="content-item">
+                <div class="movie-card">
+                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
+                        <img src="{{ movie.thumbnail.url }}" alt="{{ movie.title }}" class="img-fluid">
+                        <div class="card-overlay">
+                            <h3 class="card-title">{{ movie.title }}</h3>
+                            <div class="card-meta">
+                                <span>{{ movie.release_date|date:"Y" }}</span>
+                                {% if movie.content_type == 'movie' %}
+                                    <span>{{ movie.duration }}m</span>
+                                {% else %}
+                                    <span>{{ movie.seasons.count }} Seasons</span>
+                                {% endif %}
+                            </div>
+                            <div class="card-actions">
+                                <a href="{% url 'movies:watch_movie' movie.id %}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-play"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-light add-to-list" data-movie-id="{{ movie.id }}">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- Trending Now -->
+    {% if trending_movies %}
+    <section class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">Trending Now</h2>
+            <a href="{% url 'movies:search_movies' %}?sort=trending" class="view-all">View All</a>
+        </div>
+        <div class="content-row">
+            {% for movie in trending_movies %}
+            <div class="content-item">
+                <div class="movie-card">
+                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
+                        <img src="{{ movie.thumbnail.url }}" alt="{{ movie.title }}" class="img-fluid">
+                        <div class="card-overlay">
+                            <h3 class="card-title">{{ movie.title }}</h3>
+                            <div class="card-meta">
+                                <span>{{ movie.release_date|date:"Y" }}</span>
+                                {% if movie.content_type == 'movie' %}
+                                    <span>{{ movie.duration }}m</span>
+                                {% else %}
+                                    <span>{{ movie.seasons.count }} Seasons</span>
+                                {% endif %}
+                            </div>
+                            <div class="card-actions">
+                                <a href="{% url 'movies:watch_movie' movie.id %}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-play"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-light add-to-list" data-movie-id="{{ movie.id }}">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- Popular on AIFLIX -->
+    {% if popular_movies %}
+    <section class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">Popular on AIFLIX</h2>
+            <a href="{% url 'movies:search_movies' %}?sort=popular" class="view-all">View All</a>
+        </div>
+        <div class="content-row">
+            {% for movie in popular_movies %}
+            <div class="content-item">
+                <div class="movie-card">
+                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
+                        <img src="{{ movie.thumbnail.url }}" alt="{{ movie.title }}" class="img-fluid">
+                        <div class="card-overlay">
+                            <h3 class="card-title">{{ movie.title }}</h3>
+                            <div class="card-meta">
+                                <span>{{ movie.release_date|date:"Y" }}</span>
+                                {% if movie.content_type == 'movie' %}
+                                    <span>{{ movie.duration }}m</span>
+                                {% else %}
+                                    <span>{{ movie.seasons.count }} Seasons</span>
+                                {% endif %}
+                            </div>
+                            <div class="card-actions">
+                                <a href="{% url 'movies:watch_movie' movie.id %}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-play"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-light add-to-list" data-movie-id="{{ movie.id }}">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- Recently Added -->
+    {% if recent_movies %}
+    <section class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">Recently Added</h2>
+            <a href="{% url 'movies:search_movies' %}?sort=newest" class="view-all">View All</a>
+        </div>
+        <div class="content-row">
+            {% for movie in recent_movies %}
+            <div class="content-item">
+                <div class="movie-card">
+                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
+                        <img src="{{ movie.thumbnail.url }}" alt="{{ movie.title }}" class="img-fluid">
+                        <div class="card-overlay">
+                            <h3 class="card-title">{{ movie.title }}</h3>
+                            <div class="card-meta">
+                                <span>{{ movie.release_date|date:"Y" }}</span>
+                                {% if movie.content_type == 'movie' %}
+                                    <span>{{ movie.duration }}m</span>
+                                {% else %}
+                                    <span>{{ movie.seasons.count }} Seasons</span>
+                                {% endif %}
+                            </div>
+                            <div class="card-actions">
+                                <a href="{% url 'movies:watch_movie' movie.id %}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-play"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-light add-to-list" data-movie-id="{{ movie.id }}">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- Movies -->
+    {% if movies %}
+    <section class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">Movies</h2>
+            <a href="{% url 'movies:search_movies' %}?type=movie" class="view-all">View All</a>
+        </div>
+        <div class="content-row">
+            {% for movie in movies %}
+            <div class="content-item">
+                <div class="movie-card">
+                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
+                        <img src="{{ movie.thumbnail.url }}" alt="{{ movie.title }}" class="img-fluid">
+                        <div class="card-overlay">
+                            <h3 class="card-title">{{ movie.title }}</h3>
+                            <div class="card-meta">
+                                <span>{{ movie.release_date|date:"Y" }}</span>
+                                <span>{{ movie.duration }}m</span>
+                            </div>
+                            <div class="card-actions">
+                                <a href="{% url 'movies:watch_movie' movie.id %}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-play"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-light add-to-list" data-movie-id="{{ movie.id }}">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- TV Series -->
+    {% if series %}
+    <section class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">TV Series</h2>
+            <a href="{% url 'movies:search_movies' %}?type=series" class="view-all">View All</a>
+        </div>
+        <div class="content-row">
+            {% for show in series %}
+            <div class="content-item">
+                <div class="movie-card">
+                    <a href="{% url 'movies:movie_detail' show.id show.slug %}">
+                        <img src="{{ show.thumbnail.url }}" alt="{{ show.title }}" class="img-fluid">
+                        <div class="card-overlay">
+                            <h3 class="card-title">{{ show.title }}</h3>
+                            <div class="card-meta">
+                                <span>{{ show.release_date|date:"Y" }}</span>
+                                <span>{{ show.seasons.count }} Seasons</span>
+                            </div>
+                            <div class="card-actions">
+                                <a href="{% url 'movies:watch_movie' show.id %}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-play"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-light add-to-list" data-movie-id="{{ show.id }}">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- Documentaries -->
+    {% if documentaries %}
+    <section class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">Documentaries</h2>
+            <a href="{% url 'movies:search_movies' %}?type=documentary" class="view-all">View All</a>
+        </div>
+        <div class="content-row">
+            {% for doc in documentaries %}
+            <div class="content-item">
+                <div class="movie-card">
+                    <a href="{% url 'movies:movie_detail' doc.id doc.slug %}">
+                        <img src="{{ doc.thumbnail.url }}" alt="{{ doc.title }}" class="img-fluid">
+                        <div class="card-overlay">
+                            <h3 class="card-title">{{ doc.title }}</h3>
+                            <div class="card-meta">
+                                <span>{{ doc.release_date|date:"Y" }}</span>
+                                <span>{{ doc.duration }}m</span>
+                            </div>
+                            <div class="card-actions">
+                                <a href="{% url 'movies:watch_movie' doc.id %}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-play"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-light add-to-list" data-movie-id="{{ doc.id }}">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    <!-- Continue Watching -->
+    {% if watch_history %}
+    <section class="content-section">
+        <h2 class="section-title">Continue Watching</h2>
+        <div class="content-row">
+            {% for item in watch_history %}
+            <div class="content-item">
+                <div class="movie-card">
+                    <a href="{% url 'movies:watch_movie' item.movie.id %}">
+                        <img src="{{ item.movie.thumbnail.url }}" alt="{{ item.movie.title }}" class="img-fluid">
+                        <div class="progress" style="height: 4px; margin-top: -4px; background: rgba(128, 128, 128, 0.3);">
+                            <div class="progress-bar bg-danger" 
+                                 role="progressbar" 
+                                 style="width: {{ item.progress }}%"
+                                 aria-valuenow="{{ item.progress }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="card-overlay">
+                            <div class="card-actions">
+                                <button class="btn btn-sm btn-danger">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Trending Now -->
+    {% if trending_movies %}
+    <section class="content-section">
+        <h2 class="section-title">Trending Now</h2>
+        <div class="content-row">
+            {% for movie in trending_movies|slice:":10" %}
+            <div class="content-item">
+                <div class="movie-card">
+                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
+                        <img src="{{ movie.thumbnail.url }}" alt="{{ movie.title }}" class="img-fluid">
+                        <div class="card-overlay">
+                            <h3 class="card-title">{{ movie.title }}</h3>
+                            <div class="card-meta">
+                                <span>{{ movie.release_date|date:"Y" }}</span>
+                                <span>{{ movie.duration }}m</span>
+                            </div>
+                            <div class="card-actions">
+                                <a href="{% url 'movies:watch_movie' movie.id %}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-play"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-light add-to-list" data-movie-id="{{ movie.id }}">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Popular on AIFLIX -->
+    {% if popular_movies %}
+    <section class="content-section">
+        <h2 class="section-title">Popular on AIFLIX</h2>
+        <div class="content-row">
+            {% for movie in popular_movies|slice:":10" %}
+            <div class="content-item">
+                <div class="movie-card">
+                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
+                        <img src="{{ movie.thumbnail.url }}" alt="{{ movie.title }}" class="img-fluid">
+                        <div class="card-overlay">
+                            <h3 class="card-title">{{ movie.title }}</h3>
+                            <div class="card-meta">
+                                <span>{{ movie.release_date|date:"Y" }}</span>
+                                <span>{{ movie.duration }}m</span>
+                            </div>
+                            <div class="card-actions">
+                                <a href="{% url 'movies:watch_movie' movie.id %}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-play"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-light add-to-list" data-movie-id="{{ movie.id }}">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Recently Added -->
+    {% if recent_movies %}
+    <section class="content-section">
+        <h2 class="section-title">Recently Added</h2>
+        <div class="content-row">
+            {% for movie in recent_movies|slice:":10" %}
+            <div class="content-item">
+                <div class="movie-card">
+                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
+                        <img src="{{ movie.thumbnail.url }}" alt="{{ movie.title }}" class="img-fluid">
+                        <div class="card-overlay">
+                            <h3 class="card-title">{{ movie.title }}</h3>
+                            <div class="card-meta">
+                                <span>{{ movie.release_date|date:"Y" }}</span>
+                                <span>{{ movie.duration }}m</span>
+                            </div>
+                            <div class="card-actions">
+                                <a href="{% url 'movies:watch_movie' movie.id %}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-play"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-light add-to-list" data-movie-id="{{ movie.id }}">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-links">
+            <div class="footer-links-column">
+                <h3>Audio and Subtitles</h3>
+                <ul>
+                    <li><a href="#">Media Center</a></li>
+                    <li><a href="#">Privacy</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                </ul>
+            </div>
+            <div class="footer-links-column">
+                <h3>Help Center</h3>
+                <ul>
+                    <li><a href="#">Jobs</a></li>
+                    <li><a href="#">Cookie Preferences</a></li>
+                </ul>
+            </div>
+            <div class="footer-links-column">
+                <h3>Gift Cards</h3>
+                <ul>
+                    <li><a href="#">Terms of Use</a></li>
+                    <li><a href="#">Corporate Information</a></li>
+                </ul>
+            </div>
+            <div class="footer-links-column">
+                <h3>Media Center</h3>
+                <ul>
+                    <li><a href="#">Legal Notices</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 AIFLIX</p>
+            <div>
+                <a href="#">Privacy</a>
+                <a href="#">Terms of Use</a>
+                <a href="#">Help</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+{% block extra_js %}
+<script>
+// Navbar scroll effect
+window.addEventListener('scroll', function() {
+    const navbar = document.querySelector('.navbar');
+    if (window.scrollY > 50) {
+        navbar.classList.add('scrolled');
+    } else {
+        navbar.classList.remove('scrolled');
+    }
+});
+
+// Add to list functionality
+document.querySelectorAll('.add-to-list').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const movieId = this.getAttribute('data-movie-id');
+        // Add AJAX call to add to list
+        console.log('Adding movie to list:', movieId);
+        // Show success message
+        const toast = new bootstrap.Toast(document.getElementById('toast'));
+        document.getElementById('toast-message').textContent = 'Added to My List';
+        toast.show();
+    });
+});
+
+// Handle play button clicks
+document.querySelectorAll('.play-button').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault();
+        const movieId = this.getAttribute('data-movie-id');
+        window.location.href = `/movies/watch/${movieId}/`;
+    });
+});
+</script>
+{% endblock %}
+    {% if trending_movies %}
+    <section class="mb-5">
+        <h2 class="section-title mb-3">Trending Now</h2>
+        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
+            {% for movie in trending_movies %}
+            <div class="col">
+                <div class="movie-card">
+                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
+                        <img src="{{ movie.thumbnail.url }}" class="img-fluid rounded" alt="{{ movie.title }}">
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Movies -->
+    {% if movies %}
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="section-title mb-0">Movies</h2>
+            <a href="{% url 'movies:search_movies' %}?type=movie" class="btn btn-sm btn-outline-light">View All</a>
+        </div>
+        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
+            {% for movie in movies %}
+            <div class="col">
+                <div class="movie-card">
+                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
+                        <img src="{{ movie.thumbnail.url }}" class="img-fluid rounded" alt="{{ movie.title }}">
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- TV Series -->
+    {% if series %}
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="section-title mb-0">TV Series</h2>
+            <a href="{% url 'movies:search_movies' %}?type=series" class="btn btn-sm btn-outline-light">View All</a>
+        </div>
+        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
+            {% for show in series %}
+            <div class="col">
+                <div class="movie-card">
+                    <a href="{% url 'movies:movie_detail' show.id show.slug %}">
+                        <img src="{{ show.thumbnail.url }}" class="img-fluid rounded" alt="{{ show.title }}">
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Documentaries -->
+    {% if documentaries %}
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="section-title mb-0">Documentaries</h2>
+            <a href="{% url 'movies:search_movies' %}?type=documentary" class="btn btn-sm btn-outline-light">View All</a>
+        </div>
+        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
+            {% for doc in documentaries %}
+            <div class="col">
+                <div class="movie-card">
+                    <a href="{% url 'movies:movie_detail' doc.id doc.slug %}">
+                        <img src="{{ doc.thumbnail.url }}" class="img-fluid rounded" alt="{{ doc.title }}">
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add to My List functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const addToMyListBtn = document.getElementById('addToMyList');
+    
+    if (addToMyListBtn) {
+        addToMyListBtn.addEventListener('click', function() {
+            const movieId = this.dataset.movieId;
+            const url = `/profiles/toggle-my-list/${movieId}/`;
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'added') {
+                    this.innerHTML = '<i class="fas fa-check"></i> My List';
+                    this.classList.add('btn-success');
+                    this.classList.remove('btn-outline-light');
+                } else if (data.status === 'removed') {
+                    this.innerHTML = '<i class="far fa-plus"></i> My List';
+                    this.classList.remove('btn-success');
+                    this.classList.add('btn-outline-light');
+                }
+                
+                // Show a toast notification
+                const toast = new bootstrap.Toast(document.getElementById('toast'));
+                document.getElementById('toast-message').textContent = data.message;
+                toast.show();
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    }
+});
+</script>
+{% endblock %}

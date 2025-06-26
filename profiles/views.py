@@ -1,0 +1,211 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from .models import Profile, WatchHistory, MyList
+from .forms import ProfileForm, ProfileSelectionForm
+from movies.models import Movie
+
+@login_required
+def profile_list(request):
+    """List all profiles for the current user."""
+    profiles = request.user.profiles.all()
+    
+    # If user has no profiles, redirect to create one
+    if not profiles.exists():
+        return redirect('profiles:create_profile')
+    
+    # If user has only one profile and it's not selected, select it automatically
+    if len(profiles) == 1 and 'profile_id' not in request.session:
+        request.session['profile_id'] = profiles[0].id
+        return redirect('movies:home')
+    
+    # If user has a selected profile and is accessing the profile list,
+    # we might want to redirect them to the home page
+    if 'profile_id' in request.session and request.GET.get('force') != 'true':
+        return redirect('movies:home')
+    
+    return render(request, 'profiles/profile_list.html', {
+        'profiles': profiles,
+    })
+
+@login_required
+def create_profile(request, profile_id=None):
+    """
+    Create a new profile or edit an existing one for the current user.
+    """
+    profile = None
+    if profile_id:
+        profile = get_object_or_404(Profile, id=profile_id, user=request.user)
+    
+    # Check profile limit (max 5 profiles per user)
+    if not profile and request.user.profiles.count() >= 5:
+        messages.error(request, 'You can only have up to 5 profiles.')
+        return redirect('profiles:profile_list')
+    
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            profile = form.save(commit=False)
+            
+            # Only set the user for new profiles
+            if not profile.pk:
+                profile.user = request.user
+                message = 'Profile created successfully!'
+            else:
+                message = 'Profile updated successfully!'
+            
+            profile.save()
+            form.save_m2m()  # Save many-to-many relationships
+            
+            messages.success(request, message)
+            
+            # If this is the user's first profile, select it automatically
+            if request.user.profiles.count() == 1:
+                request.session['profile_id'] = profile.id
+                return redirect('movies:home')
+                
+            return redirect('profiles:profile_list')
+    else:
+        form = ProfileForm(instance=profile)
+    
+    return render(request, 'profiles/profile_form.html', {
+        'form': form,
+        'profile': profile,
+        'is_edit': profile is not None,
+    })
+
+@login_required
+def select_profile(request, profile_id):
+    """
+    Select a profile to use for the current session.
+    """
+    profile = get_object_or_404(Profile, id=profile_id, user=request.user)
+    request.session['profile_id'] = profile.id
+    
+    # Set session expiry to 30 days
+    request.session.set_expiry(60 * 60 * 24 * 30)
+    
+    # Add a welcome message
+    messages.success(request, f'Welcome back, {profile.name}!')
+    
+    # Redirect to the next parameter if it exists, otherwise to the home page
+    next_url = request.GET.get('next', 'movies:home')
+    
+    # Basic security check to prevent open redirects
+    if not (next_url.startswith('/') or next_url.startswith('http')):
+        next_url = 'movies:home'
+    
+    # If it's not a safe URL, default to home
+    from urllib.parse import urlparse
+    try:
+        result = urlparse(next_url)
+        if result.scheme or result.netloc:
+            next_url = 'movies:home'
+    except:
+        next_url = 'movies:home'
+    
+    return redirect(next_url)
+
+@login_required
+def my_list(request):
+    """View the user's watchlist."""
+    # Check if a profile is selected
+    if 'profile_id' not in request.session:
+        messages.warning(request, 'Please select a profile to view your watchlist.')
+        return redirect('profiles:profile_list')
+    
+    # Get the current profile
+    try:
+        profile = Profile.objects.get(id=request.session['profile_id'], user=request.user)
+    except Profile.DoesNotExist:
+        # Handle case where profile was deleted but session still has the ID
+        del request.session['profile_id']
+        messages.warning(request, 'Please select a profile to continue.')
+        return redirect('profiles:profile_list')
+    
+    # Get the watchlist with related movies to reduce database queries
+    my_list_items = MyList.objects.filter(profile=profile).select_related('movie')
+    
+    # Group by content type (movie or series)
+    movies = []
+    series = []
+    
+    for item in my_list_items:
+        if item.movie.is_series:
+            series.append(item.movie)
+        else:
+            movies.append(item.movie)
+    
+    # Check if the request is an AJAX request
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({
+            'movies': [{
+                'id': m.id,
+                'title': m.title,
+                'thumbnail_url': m.thumbnail.url if m.thumbnail else '',
+                'url': m.get_absolute_url(),
+            } for m in movies],
+            'series': [{
+                'id': s.id,
+                'title': s.title,
+                'thumbnail_url': s.thumbnail.url if s.thumbnail else '',
+                'url': s.get_absolute_url(),
+            } for s in series],
+        })
+    
+    return render(request, 'profiles/my_list.html', {
+        'profile': profile,
+        'movies': movies,
+        'series': series,
+        'total_items': len(movies) + len(series),
+    })
+
+@login_required
+@require_POST
+def toggle_my_list(request, movie_id):
+    """Add or remove a movie from the user's watchlist."""
+    if 'profile_id' not in request.session:
+        return JsonResponse({'status': 'error', 'message': 'No profile selected'}, status=400)
+    
+    profile = get_object_or_404(Profile, id=request.session['profile_id'], user=request.user)
+    movie = get_object_or_404(Movie, id=movie_id)
+    
+    my_list_item, created = MyList.objects.get_or_create(
+        profile=profile,
+        movie=movie,
+        defaults={'profile': profile, 'movie': movie}
+    )
+    
+    if not created:
+        my_list_item.delete()
+        return JsonResponse({'status': 'removed', 'message': 'Removed from My List'})
+    
+    return JsonResponse({'status': 'added', 'message': 'Added to My List'})
+
+@login_required
+def delete_profile(request, profile_id):
+    """Delete a user's profile."""
+    profile = get_object_or_404(Profile, id=profile_id, user=request.user)
+    
+    # Don't allow deleting the last profile
+    if request.user.profiles.count() <= 1:
+        messages.error(request, 'You cannot delete your only profile.')
+        return redirect('profiles:profile_list')
+    
+    # If the profile being deleted is the currently selected one, update the session
+    if 'profile_id' in request.session and int(request.session['profile_id']) == profile.id:
+        # Select another profile
+        new_profile = request.user.profiles.exclude(id=profile.id).first()
+        if new_profile:
+            request.session['profile_id'] = new_profile.id
+        else:
+            del request.session['profile_id']
+    
+    # Delete the profile
+    profile_name = profile.name
+    profile.delete()
+    
+    messages.success(request, f'Profile "{profile_name}" has been deleted.')
+    return redirect('profiles:profile_list')

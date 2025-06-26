@@ -1,0 +1,227 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Search Results for "{{ query }}" - AIFLIX{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>Search Results for "{{ query }}"</h1>
+            <p class="text-muted">{{ result_count }} result{% if result_count != 1 %}s{% endif %} found</p>
+        </div>
+        
+        <div class="col-md-4
+        ">
+            <div class="dropdown float-md-end mb-3">
+                <button class="btn btn-outline-light dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown">
+                    {% if content_type %}
+                        Filter: {{ content_type|title }}
+                    {% else %}
+                        Filter by Type
+                    {% endif %}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark">
+                    <li><a class="dropdown-item {% if not content_type %}active{% endif %}" 
+                          href="?q={{ query }}">All Types</a></li>
+                    <li><a class="dropdown-item {% if content_type == 'movie' %}active{% endif %}" 
+                          href="?q={{ query }}&type=movie">Movies</a></li>
+                    <li><a class="dropdown-item {% if content_type == 'series' %}active{% endif %}" 
+                          href="?q={{ query }}&type=series">TV Series</a></li>
+                    <li><a class="dropdown-item {% if content_type == 'documentary' %}active{% endif %}" 
+                          href="?q={{ query }}&type=documentary">Documentaries</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    {% if results %}
+        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-4">
+            {% for item in results %}
+                <div class="col">
+                    <div class="movie-card h-100">
+                        <a href="{% url 'movies:movie_detail' item.id item.slug %}" class="text-decoration-none">
+                            <div class="position-relative">
+                                <img src="{{ item.thumbnail.url }}" class="img-fluid rounded" alt="{{ item.title }}">
+                                <div class="movie-card-overlay">
+                                    <div class="movie-card-info">
+                                        <h6>{{ item.title }}</h6>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-danger">{{ item.get_maturity_rating_display }}</span>
+                                            <span class="text-warning">
+                                                <i class="fas fa-star"></i> {{ item.imdb_rating|default:"N/A" }}
+                                            </span>
+                                        </div>
+                                        <div class="mt-2">
+                                            <span class="badge bg-secondary">{{ item.get_content_type_display }}</span>
+                                            <span class="text-muted">{{ item.release_date|date:"Y" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if results.has_other_pages %}
+        <nav aria-label="Search results pagination" class="mt-5">
+            <ul class="pagination justify-content-center">
+                {% if results.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?q={{ query }}&page={{ results.previous_page_number }}{% if content_type %}&type={{ content_type }}{% endif %}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                    </li>
+                {% endif %}
+                
+                {% for i in results.paginator.page_range %}
+                    {% if results.number == i %}
+                        <li class="page-item active" aria-current="page">
+                            <span class="page-link">{{ i }}</span>
+                        </li>
+                    {% else %}
+                        {% if i > results.number|add:'-3' and i < results.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?q={{ query }}&page={{ i }}{% if content_type %}&type={{ content_type }}{% endif %}">{{ i }}</a>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+                
+                {% if results.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?q={{ query }}&page={{ results.next_page_number }}{% if content_type %}&type={{ content_type }}{% endif %}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+    {% else %}
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-search fa-4x text-muted mb-3"></i>
+                <h3>No results found for "{{ query }}"</h3>
+                <p class="text-muted">Try different keywords or check the spelling.</p>
+            </div>
+            <a href="{% url 'movies:home' %}" class="btn btn-primary">Browse All Content</a>
+        </div>
+    {% endif %}
+    
+    <!-- Search Suggestions -->
+    {% if not results %}
+    <div class="mt-5">
+        <h4 class="mb-4">You might be interested in:</h4>
+        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
+            {% for movie in trending_movies|slice:":5" %}
+            <div class="col">
+                <div class="movie-card">
+                    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}">
+                        <img src="{{ movie.thumbnail.url }}" class="img-fluid rounded" alt="{{ movie.title }}">
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.movie-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.movie-card:hover {
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+.movie-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.movie-card-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+    padding: 1rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.movie-card:hover .movie-card-overlay {
+    opacity: 1;
+}
+
+.movie-card-info h6 {
+    margin: 0;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.page-item.active .page-link {
+    background-color: #e50914;
+    border-color: #e50914;
+}
+
+.page-link {
+    color: #fff;
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+}
+
+.page-link:hover {
+    color: #fff;
+    background-color: #333;
+    border-color: #444;
+}
+
+.dropdown-menu {
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+}
+
+.dropdown-item {
+    color: #fff;
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+    background-color: #333;
+    color: #fff;
+}
+
+.dropdown-item.active, .dropdown-item:active {
+    background-color: #e50914;
+    color: #fff;
+}
+
+.dropdown-divider {
+    border-top: 1px solid #333;
+}
+</style>
+{% endblock %}

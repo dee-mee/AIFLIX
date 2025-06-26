@@ -1,0 +1,25 @@
+# Core
+Django==5.0.7
+Pillow==10.2.0
+python-dotenv==1.0.1
+
+# Database
+psycopg2-binary==2.9.9
+
+# Static files
+whitenoise==6.6.0
+
+# Development
+django-debug-toolbar==4.3.0
+
+# Testing
+pytest==8.1.1
+pytest-django==4.7.0
+
+# Code quality
+black==24.3.0
+flake8==7.0.0
+isort==5.13.2
+
+# Frontend
+libsass==0.22.0

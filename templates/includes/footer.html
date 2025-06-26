@@ -1,0 +1,101 @@
+<footer class="mt-auto py-5 {% if light %}bg-dark{% else %}bg-black{% endif %}">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-12 col-md-6 col-lg-3 mb-4">
+                <h5 class="text-uppercase mb-4">AIFLIX</h5>
+                <p class="small text-muted">
+                    Your favorite streaming platform for movies and TV shows. Watch anytime, anywhere.
+                </p>
+                <div class="social-links mt-3">
+                    <a href="#" class="text-muted me-3" title="Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="text-muted me-3" title="Twitter">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="text-muted me-3" title="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="text-muted" title="YouTube">
+                        <i class="fab fa-youtube"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-6 col-md-3 col-lg-2">
+                <h6 class="text-uppercase small mb-4">Navigation</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <a href="{% url 'movies:home' %}" class="text-muted text-decoration-none">Home</a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="{% url 'movies:browse' %}" class="text-muted text-decoration-none">Browse</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                    <li class="mb-2">
+                        <a href="{% url 'profiles:my_list' %}" class="text-muted text-decoration-none">My List</a>
+                    </li>
+                    {% endif %}
+                    <li class="mb-2">
+                        <a href="#" class="text-muted text-decoration-none">New Releases</a>
+                    </li>
+                    <li>
+                        <a href="#" class="text-muted text-decoration-none">Popular</a>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="col-6 col-md-3 col-lg-2">
+                <h6 class="text-uppercase small mb-4">Legal</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <a href="{% url 'pages:privacy' %}" class="text-muted text-decoration-none">Privacy Policy</a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="{% url 'pages:terms' %}" class="text-muted text-decoration-none">Terms of Service</a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#" class="text-muted text-decoration-none">Cookie Preferences</a>
+                    </li>
+                    <li>
+                        <a href="#" class="text-muted text-decoration-none">Corporate Information</a>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="col-12 col-md-6 col-lg-3 offset-lg-2">
+                <h6 class="text-uppercase small mb-4">Newsletter</h6>
+                <p class="small text-muted">Subscribe to our newsletter for the latest updates and offers.</p>
+                <form class="mt-3">
+                    <div class="input-group">
+                        <input type="email" class="form-control bg-dark text-light border-secondary" 
+                               placeholder="Your email" aria-label="Your email" required>
+                        <button class="btn btn-danger" type="submit">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <hr class="my-4 border-secondary">
+        
+        <div class="row align-items-center">
+            <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                <p class="small text-muted mb-0">&copy; {% now "Y" %} AIFLIX. All rights reserved.</p>
+            </div>
+            <div class="col-md-6 text-center text-md-end">
+                <div class="language-selector">
+                    <select class="form-select form-select-sm d-inline-block w-auto bg-dark text-light border-secondary">
+                        <option value="en">English</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                        <option value="de">Deutsch</option>
+                        <option value="it">Italiano</option>
+                        <option value="pt">Português</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>

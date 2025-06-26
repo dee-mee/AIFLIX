@@ -1,0 +1,339 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ movie.title }} - AIFLIX{% endblock %}
+
+{% block content %}
+<!-- Movie/TV Show Header -->
+<div class="movie-header position-relative" style="background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+    {% if movie.banner_image %}
+        url('{{ movie.banner_image.url }}')
+    {% else %}
+        var(--bs-dark)
+    {% endif %}
+    no-repeat center center/cover; min-height: 70vh; padding-top: 80px;">
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-4">
+                <img src="{{ movie.thumbnail.url }}" class="img-fluid rounded shadow" alt="{{ movie.title }}">
+            </div>
+            <div class="col-lg-8 text-white mt-4 mt-lg-0">
+                <h1 class="display-4 fw-bold">{{ movie.title }}</h1>
+                
+                <div class="d-flex align-items-center mb-3">
+                    <span class="badge bg-danger me-2">{{ movie.get_maturity_rating_display }}</span>
+                    <span class="me-3">{{ movie.release_date|date:"Y" }}</span>
+                    <span class="me-3">{{ movie.duration }} min</span>
+                    <span class="text-warning">
+                        <i class="fas fa-star"></i> {{ movie.imdb_rating|default:"N/A" }}
+                    </span>
+                </div>
+                
+                <div class="d-flex gap-2 mb-4">
+                    <a href="{% url 'movies:watch_movie' movie.id %}" class="btn btn-danger btn-lg">
+                        <i class="fas fa-play me-2"></i> Play
+                    </a>
+                    <button class="btn btn-outline-light btn-lg" id="addToMyList" data-movie-id="{{ movie.id }}">
+                        {% if in_my_list %}
+                            <i class="fas fa-check"></i> My List
+                        {% else %}
+                            <i class="far fa-plus"></i> My List
+                        {% endif %}
+                    </button>
+                    
+                    <!-- Rating -->
+                    <div class="dropdown d-inline-block">
+                        <button class="btn btn-outline-light btn-lg dropdown-toggle" type="button" id="ratingDropdown" data-bs-toggle="dropdown">
+                            <i class="fas fa-thumbs-up"></i> Rate
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="ratingDropdown">
+                            <li class="px-3 py-1">
+                                <div class="rating-stars">
+                                    {% for i in "12345"|make_list %}
+                                        <i class="fas fa-star rating-star {% if user_rating and forloop.counter <= user_rating %}text-warning{% else %}text-secondary{% endif %}" 
+                                           data-rating="{{ forloop.counter }}"></i>
+                                    {% endfor %}
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h4>Overview</h4>
+                    <p>{{ movie.description }}</p>
+                </div>
+                
+                <div class="mb-4">
+                    <h5>Genres</h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for genre in movie.genres.all %}
+                            <a href="{% url 'movies:browse_genre' genre.name %}" class="badge bg-secondary text-decoration-none">
+                                {{ genre.name }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h5>Details</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Type:</strong> {{ movie.get_content_type_display }}</p>
+                            <p><strong>Release Date:</strong> {{ movie.release_date|date:"F d, Y" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Maturity Rating:</strong> {{ movie.get_maturity_rating_display }}</p>
+                            <p><strong>Duration:</strong> {{ movie.duration }} minutes</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Seasons (for TV Series) -->
+{% if movie.is_series and seasons %}
+<div class="container py-5">
+    <h2 class="mb-4">Seasons</h2>
+    
+    <div class="accordion" id="seasonsAccordion">
+        {% for season in seasons %}
+        <div class="accordion-item bg-dark text-light border-secondary">
+            <h3 class="accordion-header" id="heading{{ season.id }}">
+                <button class="accordion-button bg-dark text-light collapsed" type="button" 
+                        data-bs-toggle="collapse" data-bs-target="#collapse{{ season.id }}"
+                        aria-expanded="false" aria-controls="collapse{{ season.id }}">
+                    <div class="d-flex justify-content-between w-100 align-items-center">
+                        <div>
+                            <span class="h5 mb-0">Season {{ season.season_number }}</span>
+                            {% if season.title %}
+                                <span class="ms-2 text-muted">{{ season.title }}</span>
+                            {% endif %}
+                        </div>
+                        <span class="badge bg-secondary">{{ season.episodes.count }} episodes</span>
+                    </div>
+                </button>
+            </h3>
+            <div id="collapse{{ season.id }}" class="accordion-collapse collapse" 
+                 aria-labelledby="heading{{ season.id }}" data-bs-parent="#seasonsAccordion">
+                <div class="accordion-body">
+                    {% if season.description %}
+                        <p class="mb-3">{{ season.description }}</p>
+                    {% endif %}
+                    
+                    <div class="list-group list-group-flush">
+                        {% for episode in season.episodes.all %}
+                        <a href="{% url 'movies:watch_movie' movie.id %}?season={{ season.season_number }}&episode={{ episode.episode_number }}" 
+                           class="list-group-item list-group-item-action bg-dark text-light border-secondary d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">Episode {{ episode.episode_number }}: {{ episode.title }}</h6>
+                                <small class="text-muted">{{ episode.duration }} min • {{ episode.air_date|date:"M d, Y" }}</small>
+                            </div>
+                            <i class="fas fa-play"></i>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Similar Content -->
+{% if similar_movies %}
+<div class="container py-5">
+    <h2 class="mb-4">More Like This</h2>
+    <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
+        {% for similar in similar_movies %}
+        <div class="col">
+            <div class="movie-card">
+                <a href="{% url 'movies:movie_detail' similar.id similar.slug %}">
+                    <img src="{{ similar.thumbnail.url }}" class="img-fluid rounded" alt="{{ similar.title }}">
+                    <div class="movie-card-overlay">
+                        <div class="movie-card-info">
+                            <h6>{{ similar.title }}</h6>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-danger">{{ similar.get_maturity_rating_display }}</span>
+                                <span class="text-warning">
+                                    <i class="fas fa-star"></i> {{ similar.imdb_rating|default:"N/A" }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.movie-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.movie-card:hover {
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+.movie-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.movie-card-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+    padding: 1rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.movie-card:hover .movie-card-overlay {
+    opacity: 1;
+}
+
+.movie-card-info h6 {
+    margin: 0;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rating-stars {
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.rating-star {
+    transition: color 0.2s;
+}
+
+.rating-star:hover, .rating-star.active {
+    color: #ffc107 !important;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add to My List functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const addToMyListBtn = document.getElementById('addToMyList');
+    
+    if (addToMyListBtn) {
+        addToMyListBtn.addEventListener('click', function() {
+            const movieId = this.dataset.movieId;
+            const url = `/profiles/toggle-my-list/${movieId}/`;
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'added') {
+                    this.innerHTML = '<i class="fas fa-check"></i> My List';
+                    this.classList.add('btn-success');
+                    this.classList.remove('btn-outline-light');
+                } else if (data.status === 'removed') {
+                    this.innerHTML = '<i class="far fa-plus"></i> My List';
+                    this.classList.remove('btn-success');
+                    this.classList.add('btn-outline-light');
+                }
+                
+                // Show a toast notification
+                const toast = new bootstrap.Toast(document.getElementById('toast'));
+                document.getElementById('toast-message').textContent = data.message;
+                toast.show();
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    }
+    
+    // Rating functionality
+    const ratingStars = document.querySelectorAll('.rating-star');
+    
+    ratingStars.forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = this.dataset.rating;
+            const movieId = '{{ movie.id }}';
+            const url = `/movies/api/rate/${movieId}/`;
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: `rating=${rating}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Update star colors
+                    ratingStars.forEach((s, index) => {
+                        if (index < rating) {
+                            s.classList.add('text-warning');
+                            s.classList.remove('text-secondary');
+                        } else {
+                            s.classList.remove('text-warning');
+                            s.classList.add('text-secondary');
+                        }
+                    });
+                    
+                    // Show success message
+                    const toast = new bootstrap.Toast(document.getElementById('toast'));
+                    document.getElementById('toast-message').textContent = 'Rating saved!';
+                    toast.show();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+        
+        // Hover effect for stars
+        star.addEventListener('mouseover', function() {
+            const rating = this.dataset.rating;
+            ratingStars.forEach((s, index) => {
+                if (index < rating) {
+                    s.classList.add('text-warning');
+                }
+            });
+        });
+        
+        star.addEventListener('mouseout', function() {
+            ratingStars.forEach(s => {
+                s.classList.remove('text-warning');
+                // Restore the active state for rated stars
+                if (s.dataset.rating <= '{{ user_rating|default:0 }}') {
+                    s.classList.add('text-warning');
+                } else {
+                    s.classList.add('text-secondary');
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,403 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Watch {{ movie.title }} - AIFLIX{% endblock %}
+
+{% block extra_css %}
+<style>
+    .video-container {
+        position: relative;
+        padding-bottom: 56.25%; /* 16:9 aspect ratio */
+        height: 0;
+        overflow: hidden;
+        background-color: #000;
+    }
+    
+    .video-container video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .video-controls {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+        padding: 20px;
+        color: white;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .video-container:hover .video-controls {
+        opacity: 1;
+    }
+    
+    .progress {
+        height: 5px;
+        margin-bottom: 10px;
+        cursor: pointer;
+    }
+    
+    .progress-bar {
+        background-color: #e50914;
+    }
+    
+    .control-buttons {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .control-buttons button {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+    }
+    
+    .volume-control {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .time-display {
+        margin-left: auto;
+        font-family: monospace;
+    }
+    
+    .episode-selector {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #1a1a1a;
+        border-radius: 5px;
+    }
+    
+    .episode-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .episode-item {
+        padding: 10px;
+        border-bottom: 1px solid #333;
+        cursor: pointer;
+    }
+    
+    .episode-item:hover {
+        background-color: #2a2a2a;
+    }
+    
+    .episode-item.active {
+        background-color: #333;
+        border-left: 3px solid #e50914;
+    }
+    
+    .episode-thumbnail {
+        width: 160px;
+        height: 90px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Video Player -->
+    <div class="video-container" id="videoContainer">
+        <video id="videoPlayer" class="w-100" controls autoplay>
+            {% if movie.video_file %}
+                <source src="{{ movie.video_file.url }}" type="video/mp4">
+            {% elif movie.video_url %}
+                <source src="{{ movie.video_url }}" type="video/mp4">
+            {% endif %}
+            Your browser does not support the video tag.
+        </video>
+        
+        <!-- Custom Controls -->
+        <div class="video-controls" id="videoControls">
+            <div class="progress" id="progressBar">
+                <div class="progress-bar" id="progressBarFill" role="progressbar" style="width: {{ watch_history.progress|default:0 }}%"></div>
+            </div>
+            
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="control-buttons">
+                    <button id="playPauseBtn">
+                        <i class="fas fa-pause"></i>
+                    </button>
+                    <div class="volume-control">
+                        <button id="muteBtn">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
+                        <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="1" style="width: 80px;">
+                    </div>
+                    <div class="time-display">
+                        <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
+                    </div>
+                </div>
+                
+                <div>
+                    <button id="fullscreenBtn">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Video Info -->
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-lg-8">
+                <h2>{{ movie.title }}</h2>
+                <p>{{ movie.description }}</p>
+                
+                <!-- Episode Selector (for TV Series) -->
+                {% if movie.is_series %}
+                <div class="episode-selector">
+                    <h5>Episodes</h5>
+                    <div class="episode-list">
+                        {% for season in movie.seasons.all %}
+                            <div class="mb-3">
+                                <h6>Season {{ season.season_number }}</h6>
+                                {% for episode in season.episodes.all %}
+                                    <div class="episode-item d-flex align-items-center mb-2 {% if episode == current_episode %}active{% endif %}" 
+                                         data-episode-id="{{ episode.id }}">
+                                        <img src="{{ episode.thumbnail.url }}" class="episode-thumbnail me-3" alt="{{ episode.title }}">
+                                        <div>
+                                            <div class="fw-bold">Episode {{ episode.episode_number }}: {{ episode.title }}</div>
+                                            <small class="text-muted">{{ episode.duration }} min • {{ episode.air_date|date:"M d, Y" }}</small>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card bg-dark text-light">
+                    <div class="card-body">
+                        <h5 class="card-title">Details</h5>
+                        <p class="card-text">
+                            <strong>Type:</strong> {{ movie.get_content_type_display }}<br>
+                            <strong>Release Date:</strong> {{ movie.release_date|date:"F d, Y" }}<br>
+                            <strong>Duration:</strong> {{ movie.duration }} minutes<br>
+                            <strong>Rating:</strong> {{ movie.get_maturity_rating_display }}
+                        </p>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% for genre in movie.genres.all %}
+                                <span class="badge bg-secondary">{{ genre.name }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card bg-dark text-light mt-3">
+                    <div class="card-body">
+                        <h5 class="card-title">More Like This</h5>
+                        <div class="row">
+                            {% for similar in similar_movies|slice:":4" %}
+                                <div class="col-6 col-md-4 col-lg-6 mb-2">
+                                    <a href="{% url 'movies:watch_movie' similar.id %}" class="text-decoration-none">
+                                        <img src="{{ similar.thumbnail.url }}" class="img-fluid rounded" alt="{{ similar.title }}">
+                                        <p class="text-white mt-1 small">{{ similar.title }}</p>
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('videoPlayer');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const muteBtn = document.getElementById('muteBtn');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const progressBar = document.getElementById('progressBar');
+    const progressBarFill = document.getElementById('progressBarFill');
+    const currentTimeEl = document.getElementById('currentTime');
+    const durationEl = document.getElementById('duration');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const videoContainer = document.getElementById('videoContainer');
+    
+    // Format time in MM:SS
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        seconds = Math.floor(seconds % 60);
+        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    }
+    
+    // Update progress bar
+    function updateProgress() {
+        const progress = (video.currentTime / video.duration) * 100;
+        progressBarFill.style.width = `${progress}%`;
+        currentTimeEl.textContent = formatTime(video.currentTime);
+        
+        // Update watch history periodically
+        if (video.currentTime % 10 < 0.5) { // Update every ~10 seconds
+            updateWatchHistory(progress);
+        }
+    }
+    
+    // Update watch history via AJAX
+    function updateWatchHistory(progress) {
+        const url = '{% url "profiles:update_watch_history" movie.id %}';
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: `progress=${progress}`
+        })
+        .catch(error => console.error('Error updating watch history:', error));
+    }
+    
+    // Set video duration when metadata is loaded
+    video.addEventListener('loadedmetadata', function() {
+        durationEl.textContent = formatTime(video.duration);
+    });
+    
+    // Play/Pause toggle
+    playPauseBtn.addEventListener('click', function() {
+        if (video.paused) {
+            video.play();
+            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        } else {
+            video.pause();
+            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+        }
+    });
+    
+    // Mute/Unmute toggle
+    muteBtn.addEventListener('click', function() {
+        video.muted = !video.muted;
+        muteBtn.innerHTML = video.muted ? 
+            '<i class="fas fa-volume-mute"></i>' : 
+            '<i class="fas fa-volume-up"></i>';
+    });
+    
+    // Volume control
+    volumeSlider.addEventListener('input', function() {
+        video.volume = this.value;
+        video.muted = this.value == 0;
+        muteBtn.innerHTML = video.muted ? 
+            '<i class="fas fa-volume-mute"></i>' : 
+            '<i class="fas fa-volume-up"></i>';
+    });
+    
+    // Progress bar click to seek
+    progressBar.addEventListener('click', function(e) {
+        const rect = this.getBoundingClientRect();
+        const pos = (e.clientX - rect.left) / this.offsetWidth;
+        video.currentTime = pos * video.duration;
+    });
+    
+    // Fullscreen toggle
+    fullscreenBtn.addEventListener('click', function() {
+        if (!document.fullscreenElement) {
+            videoContainer.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable fullscreen: ${err.message}`);
+            });
+            fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+        } else {
+            document.exitFullscreen();
+            fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+        }
+    });
+    
+    // Update time display
+    video.addEventListener('timeupdate', updateProgress);
+    
+    // Handle keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Space: Play/Pause
+        if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT') {
+            e.preventDefault();
+            playPauseBtn.click();
+        }
+        
+        // M: Mute/Unmute
+        if (e.code === 'KeyM') {
+            e.preventDefault();
+            muteBtn.click();
+        }
+        
+        // F: Toggle fullscreen
+        if (e.code === 'KeyF') {
+            e.preventDefault();
+            fullscreenBtn.click();
+        }
+        
+        // Left/Right arrows: Seek -/+ 5 seconds
+        if (e.code === 'ArrowLeft') {
+            e.preventDefault();
+            video.currentTime = Math.max(0, video.currentTime - 5);
+        }
+        
+        if (e.code === 'ArrowRight') {
+            e.preventDefault();
+            video.currentTime = Math.min(video.duration, video.currentTime + 5);
+        }
+        
+        // Up/Down arrows: Volume control
+        if (e.code === 'ArrowUp') {
+            e.preventDefault();
+            video.volume = Math.min(1, video.volume + 0.1);
+            volumeSlider.value = video.volume;
+        }
+        
+        if (e.code === 'ArrowDown') {
+            e.preventDefault();
+            video.volume = Math.max(0, video.volume - 0.1);
+            volumeSlider.value = video.volume;
+        }
+    });
+    
+    // Handle episode selection for TV series
+    const episodeItems = document.querySelectorAll('.episode-item');
+    episodeItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const episodeId = this.dataset.episodeId;
+            // You would typically reload the page with the new episode
+            // or load it via AJAX and update the video source
+            window.location.href = `?episode=${episodeId}`;
+        });
+    });
+    
+    // Auto-play when scrolled into view
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    video.play().catch(e => console.log('Auto-play prevented:', e));
+                } else {
+                    video.pause();
+                }
+            });
+        },
+        { threshold: 0.5 }
+    );
+    
+    observer.observe(video);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,382 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ genre.name }} - AIFLIX{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-4">{{ genre.name }}</h1>
+            <p class="lead">Explore our collection of {{ genre.name|lower }} movies and TV shows</p>
+        </div>
+    </div>
+    
+    {% if movies %}
+        <!-- Featured Content -->
+        <div class="mb-5">
+            <h2 class="section-title mb-4">Featured {{ genre.name }}</h2>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                {% for movie in featured_movies|slice:":3" %}
+                <div class="col">
+                    <div class="card bg-dark text-white h-100">
+                        <img src="{{ movie.banner_image.url|default:movie.thumbnail.url }}" class="card-img" alt="{{ movie.title }}" style="height: 300px; object-fit: cover; opacity: 0.7;">
+                        <div class="card-img-overlay d-flex flex-column justify-content-end" style="background: linear-gradient(transparent, rgba(0,0,0,0.8));">
+                            <h3 class="card-title">{{ movie.title }}</h3>
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="badge bg-danger me-2">{{ movie.get_maturity_rating_display }}</span>
+                                <span class="text-warning">
+                                    <i class="fas fa-star"></i> {{ movie.imdb_rating|default:"N/A" }}
+                                </span>
+                                <span class="ms-2">{{ movie.release_date|date:"Y" }}</span>
+                            </div>
+                            <p class="card-text">{{ movie.description|truncatewords:30 }}</p>
+                            <div class="mt-auto">
+                                <a href="{% url 'movies:movie_detail' movie.id movie.slug %}" class="btn btn-danger me-2">
+                                    <i class="fas fa-play me-1"></i> Play
+                                </a>
+                                <a href="#" class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#trailerModal{{ movie.id }}">
+                                    <i class="fas fa-play-circle me-1"></i> Trailer
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Trailer Modal -->
+                    <div class="modal fade" id="trailerModal{{ movie.id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content bg-dark">
+                                <div class="modal-header border-0">
+                                    <h5 class="modal-title">{{ movie.title }} - Trailer</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body p-0">
+                                    {% if movie.trailer_url %}
+                                        <div class="ratio ratio-16x9">
+                                            <iframe src="{{ movie.trailer_url|safe }}" 
+                                                    title="{{ movie.title }} Trailer" 
+                                                    allowfullscreen></iframe>
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center p-5">
+                                            <i class="fas fa-film fa-3x mb-3 text-muted"></i>
+                                            <p>No trailer available</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- All Movies in Genre -->
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="section-title mb-0">All {{ genre.name }} Content</h2>
+                <div class="dropdown">
+                    <button class="btn btn-outline-light dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown">
+                        Sort by: {{ sort|default:"Most Popular" }}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark">
+                        <li><a class="dropdown-item {% if sort == 'popular' or not sort %}active{% endif %}" 
+                               href="?sort=popular">Most Popular</a></li>
+                        <li><a class="dropdown-item {% if sort == 'newest' %}active{% endif %}" 
+                               href="?sort=newest">Newest First</a></li>
+                        <li><a class="dropdown-item {% if sort == 'oldest' %}active{% endif %}" 
+                               href="?sort=oldest">Oldest First</a></li>
+                        <li><a class="dropdown-item {% if sort == 'rating' %}active{% endif %}" 
+                               href="?sort=rating">Top Rated</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-4">
+                {% for movie in movies %}
+                <div class="col">
+                    <div class="movie-card h-100">
+                        <a href="{% url 'movies:movie_detail' movie.id movie.slug %}" class="text-decoration-none">
+                            <div class="position-relative">
+                                <img src="{{ movie.thumbnail.url }}" class="img-fluid rounded" alt="{{ movie.title }}">
+                                <div class="movie-card-overlay">
+                                    <div class="movie-card-info">
+                                        <h6>{{ movie.title }}</h6>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-danger">{{ movie.get_maturity_rating_display }}</span>
+                                            <span class="text-warning">
+                                                <i class="fas fa-star"></i> {{ movie.imdb_rating|default:"N/A" }}
+                                            </span>
+                                        </div>
+                                        <div class="mt-1">
+                                            <small class="text-muted">{{ movie.release_date|date:"Y" }} • {{ movie.get_content_type_display }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Genre pagination" class="mt-5">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if sort %}&sort={{ sort }}{% endif %}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&laquo;</span>
+                        </li>
+                    {% endif %}
+                    
+                    {% for i in paginator.page_range %}
+                        {% if page_obj.number == i %}
+                            <li class="page-item active" aria-current="page">
+                                <span class="page-link">{{ i }}</span>
+                            </li>
+                        {% else %}
+                            {% if i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ i }}{% if sort %}&sort={{ sort }}{% endif %}">{{ i }}</a>
+                                </li>
+                            {% elif i == 1 or i == paginator.num_pages %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ i }}{% if sort %}&sort={{ sort }}{% endif %}">{{ i }}</a>
+                                </li>
+                            {% elif i == page_obj.number|add:'-4' or i == page_obj.number|add:'4' %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if sort %}&sort={{ sort }}{% endif %}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&raquo;</span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+        
+        <!-- Popular Genres -->
+        <div class="mb-5">
+            <h3 class="mb-4">More Genres</h3>
+            <div class="row g-3">
+                {% for g in popular_genres %}
+                    {% if g.id != genre.id %}
+                    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                        <a href="{% url 'movies:browse_genre' g.name %}" class="text-decoration-none">
+                            <div class="card bg-dark text-white genre-card h-100">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title mb-0">{{ g.name }}</h5>
+                                    <small class="text-muted">{{ g.movies.count }} titles</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        
+    {% else %}
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-film fa-4x text-muted mb-3"></i>
+                <h3>No content found in {{ genre.name }}</h3>
+                <p class="text-muted">Check back later for new additions to this genre.</p>
+            </div>
+            <a href="{% url 'movies:home' %}" class="btn btn-primary">Browse All Content</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.section-title {
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.section-title:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 50px;
+    height: 3px;
+    background-color: #e50914;
+}
+
+.genre-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #333;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.genre-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    border-color: #e50914;
+}
+
+.movie-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+}
+
+.movie-card:hover {
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+.movie-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.movie-card-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+    padding: 1rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.movie-card:hover .movie-card-overlay {
+    opacity: 1;
+}
+
+.movie-card-info h6 {
+    margin: 0;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.page-item.active .page-link {
+    background-color: #e50914;
+    border-color: #e50914;
+}
+
+.page-link {
+    color: #fff;
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+}
+
+.page-link:hover {
+    color: #fff;
+    background-color: #333;
+    border-color: #444;
+}
+
+.dropdown-menu {
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+}
+
+.dropdown-item {
+    color: #fff;
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+    background-color: #333;
+    color: #fff;
+}
+
+.dropdown-item.active, .dropdown-item:active {
+    background-color: #e50914;
+    color: #fff;
+}
+
+.modal-content {
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    color: #fff;
+}
+
+.btn-close-white {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.ratio iframe {
+    border: none;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Add to My List functionality
+    document.querySelectorAll('.add-to-list').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const movieId = this.dataset.movieId;
+            const url = `/profiles/toggle-my-list/${movieId}/`;
+            const icon = this.querySelector('i');
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'added') {
+                    icon.classList.remove('far', 'fa-plus');
+                    icon.classList.add('fas', 'fa-check');
+                    this.classList.add('btn-success');
+                    this.classList.remove('btn-outline-light');
+                } else if (data.status === 'removed') {
+                    icon.classList.remove('fas', 'fa-check');
+                    icon.classList.add('far', 'fa-plus');
+                    this.classList.remove('btn-success');
+                    this.classList.add('btn-outline-light');
+                }
+                
+                // Show toast notification
+                const toast = new bootstrap.Toast(document.getElementById('toast'));
+                document.getElementById('toast-message').textContent = data.message;
+                toast.show();
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+});
+</script>
+{% endblock %}

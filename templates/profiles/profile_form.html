@@ -1,0 +1,578 @@
+{% extends 'base/base.html' %}
+
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Edit{% else %}Add{% endif %} Profile - AIFLIX{% endblock %}
+
+{% block content %}
+<div class="profiles-container min-vh-100 d-flex flex-column">
+    {% include 'includes/navbar.html' with transparent=True %}
+    
+    <div class="container my-auto py-5">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="card bg-dark text-white border-secondary">
+                    <div class="card-body p-4 p-md-5">
+                        <div class="text-center mb-4">
+                            <h1 class="h3 mb-3">{% if form.instance.pk %}Edit Profile{% else %}Add Profile{% endif %}</h1>
+                            <p class="text-muted">
+                                {% if form.instance.pk %}
+                                    Update your profile details below.
+                                {% else %}
+                                    Add a new profile for someone who will be watching AIFLIX.
+                                {% endif %}
+                            </p>
+                        </div>
+                        
+                        <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {% for error in form.non_field_errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            
+                            <div class="text-center mb-4">
+                                <div class="profile-avatar-upload mx-auto position-relative">
+                                    <div class="position-relative" style="width: 150px; height: 150px; margin: 0 auto;">
+                                        {% if form.instance.avatar %}
+                                            <img id="avatar-preview" 
+                                                src="{{ form.instance.avatar.url }}" 
+                                                alt="Profile" 
+                                                class="img-fluid rounded-circle w-100 h-100 object-fit-cover">
+                                        {% else %}
+                                            <div id="avatar-preview" class="profile-avatar-initials rounded-circle d-flex align-items-center justify-content-center w-100 h-100">
+                                                <span class="display-4 fw-bold text-uppercase">
+                                                    {{ form.instance.initials|default:"PR" }}
+                                                </span>
+                                            </div>
+                                        {% endif %}
+                                        <label for="{{ form.avatar.id_for_label }}" 
+                                            class="profile-avatar-edit position-absolute bottom-0 end-0 bg-danger rounded-circle d-flex align-items-center justify-content-center"
+                                            style="width: 40px; height: 40px; cursor: pointer;"
+                                            data-bs-toggle="tooltip" 
+                                            data-bs-placement="bottom" 
+                                            title="Change profile picture">
+                                            <i class="fas fa-camera text-white"></i>
+                                            <span class="visually-hidden">Change photo</span>
+                                        </label>
+                                        {{ form.avatar }}
+                                    </div>
+                                    <div class="mt-3">
+                                        <div class="avatar-options d-flex justify-content-center gap-2">
+                                            {% for i in "12345" %}
+                                                <div class="avatar-option rounded-circle overflow-hidden" 
+                                                    style="width: 40px; height: 40px; cursor: pointer;"
+                                                    data-initial="{{ forloop.counter|stringformat:'02d' }}">
+                                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-primary text-white fw-bold">
+                                                        {{ forloop.counter|stringformat:'02d' }}
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                            {% for color in "#e50914,#0d6efd,#198754,#ffc107,#6f42c1,#fd7e14,#0dcaf0,#6610f2,#d63384,#20c997"|split:"," %}
+                                                <div class="avatar-option rounded-circle" 
+                                                    style="width: 40px; height: 40px; cursor: pointer; background-color: {{ color }};"
+                                                    data-color="{{ color }}">
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                        <div class="form-text text-muted mt-2">
+                                            Click to select an avatar or upload your own
+                                        </div>
+                                    </div>
+                                </div>
+                                {% for error in form.avatar.errors %}
+                                    <div class="text-danger small text-center mt-2">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.name.id_for_label }}" class="form-label">Profile Name</label>
+                                {{ form.name }}
+                                <div class="invalid-feedback">
+                                    Please enter a profile name.
+                                </div>
+                                {% for error in form.name.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">Maturity Level</label>
+                                <div class="form-text text-muted mb-2">
+                                    Choose the maturity level for this profile. This will determine what content is available.
+                                </div>
+                                <div class="maturity-levels">
+                                    {% for choice in form.maturity_level %}
+                                        <div class="form-check mb-2">
+                                            {{ choice.tag }}
+                                            <label for="{{ choice.id_for_label }}" class="form-check-label d-flex align-items-center">
+                                                <span class="maturity-badge me-2">
+                                                    {% if choice.choice_label == 'All Maturity Levels' %}
+                                                        <i class="fas fa-globe"></i>
+                                                    {% elif choice.choice_label == '7+' %}
+                                                        <i class="fas fa-child"></i>
+                                                    {% elif choice.choice_label == '13+' %}
+                                                        <i class="fas fa-user"></i>
+                                                    {% elif choice.choice_label == '16+' %}
+                                                        <i class="fas fa-user-shield"></i>
+                                                    {% else %}
+                                                        <i class="fas fa-user-ninja"></i>
+                                                    {% endif %}
+                                                </span>
+                                                <div>
+                                                    <div class="fw-medium">{{ choice.choice_label }}</div>
+                                                    <div class="text-muted small">
+                                                        {% if choice.choice_label == 'All Maturity Levels' %}
+                                                            All content is available
+                                                        {% elif choice.choice_label == '7+' %}
+                                                            For ages 7 and up
+                                                        {% elif choice.choice_label == '13+' %}
+                                                            For ages 13 and up
+                                                        {% elif choice.choice_label == '16+' %}
+                                                            For ages 16 and up
+                                                        {% else %}
+                                                            All content including mature themes
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                {% for error in form.maturity_level.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="form-check form-switch">
+                                    {{ form.is_kids }}
+                                    <label class="form-check-label d-flex align-items-center" for="{{ form.is_kids.id_for_label }}">
+                                        <div class="me-2">
+                                            <i class="fas fa-child fa-lg"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-medium">Kids Profile</div>
+                                            <div class="text-muted small">
+                                                Simplified experience with content suitable for children
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                                {% for error in form.is_kids.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-between align-items-center mt-5 pt-3 border-top border-secondary">
+                                <div>
+                                    {% if form.instance.pk %}
+                                        <a href="#deleteProfileModal" class="btn btn-outline-danger" data-bs-toggle="modal">
+                                            <i class="far fa-trash-alt me-1"></i> Delete Profile
+                                        </a>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'profiles:profile_list' %}" class="btn btn-outline-light">
+                                        <i class="fas fa-times me-1"></i> Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-danger px-4">
+                                        <i class="fas fa-save me-1"></i> 
+                                        {% if form.instance.pk %}Save Changes{% else %}Create Profile{% endif %}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Profile Modal -->
+    {% if form.instance.pk %}
+    <div class="modal fade" id="deleteProfileModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">Delete Profile</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this profile? All viewing history and settings will be lost.</p>
+                    <p class="mb-0">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                    <form action="{% url 'profiles:delete_profile' form.instance.pk %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Delete Profile</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.profiles-container {
+    background: #141414;
+    color: #fff;
+}
+
+.profile-avatar-upload {
+    width: 120px;
+    height: 120px;
+    position: relative;
+    cursor: pointer;
+}
+
+#avatar-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #333;
+}
+
+.profile-avatar-initials {
+    width: 100%;
+    height: 100%;
+    background: #2f2f2f;
+    color: #b3b3b3;
+    font-size: 3rem;
+    font-weight: 500;
+    border: 2px solid #333;
+}
+
+.profile-avatar-edit {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 36px;
+    height: 36px;
+    background: #e50914;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    border: 2px solid #141414;
+    transition: all 0.3s ease;
+}
+
+.profile-avatar-edit:hover {
+    background: #f40612;
+    transform: scale(1.1);
+}
+
+.profile-avatar-upload input[type="file"] {
+    display: none;
+}
+
+.form-control, .form-select {
+    background-color: #2f2f2f !important;
+    border: 1px solid #444;
+    color: #fff !important;
+    padding: 0.75rem 1rem;
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: #3f3f3f !important;
+    border-color: #e50914;
+    box-shadow: 0 0 0 0.25rem rgba(229, 9, 20, 0.25);
+    color: #fff;
+}
+
+.form-control:disabled, .form-control[readonly] {
+    background-color: #1f1f1f !important;
+    border-color: #333;
+    color: #6c757d !important;
+}
+
+.form-check-input {
+    width: 1.2em;
+    height: 1.2em;
+    margin-top: 0.2em;
+    background-color: #2f2f2f;
+    border: 1px solid #444;
+}
+
+.form-check-input:checked {
+    background-color: #e50914;
+    border-color: #e50914;
+}
+
+.form-check-input:focus {
+    border-color: #e50914;
+    box-shadow: 0 0 0 0.25rem rgba(229, 9, 20, 0.25);
+}
+
+.form-switch .form-check-input {
+    width: 2.5em;
+    margin-left: -2.5em;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23b3b3b3'/%3e%3c/svg%3e") !important;
+}
+
+.form-switch .form-check-input:checked {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e") !important;
+}
+
+.maturity-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 2px;
+    background-color: #2f2f2f;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.btn-outline-light {
+    border-color: #4d4d4d;
+    color: #b3b3b3;
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+}
+
+.btn-outline-light:hover {
+    border-color: #b3b3b3;
+    color: #fff;
+    background-color: transparent;
+}
+
+.btn-danger {
+    background-color: #e50914;
+    border-color: #e50914;
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+}
+
+.btn-danger:hover {
+    background-color: #f40612;
+    border-color: #f40612;
+}
+
+.modal-content {
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+}
+
+.modal-header {
+    border-bottom: 1px solid #333;
+}
+
+.modal-footer {
+    border-top: 1px solid #333;
+}
+
+.btn-close-white {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.invalid-feedback {
+    display: none;
+    color: #ff6b6b;
+}
+
+.was-validated .form-control:invalid ~ .invalid-feedback,
+.was-validated .form-control:invalid ~ .invalid-tooltip,
+.form-control.is-invalid ~ .invalid-feedback,
+.form-control.is-invalid ~ .invalid-tooltip {
+    display: block;
+}
+
+.was-validated .form-control:invalid,
+.form-control.is-invalid {
+    border-color: #dc3545;
+    padding-right: calc(1.5em + 0.75rem);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Avatar Preview and Selection
+        const avatarInput = document.getElementById('{{ form.avatar.id_for_label }}');
+        const avatarPreview = document.getElementById('avatar-preview');
+        const avatarOptions = document.querySelectorAll('.avatar-option');
+        let selectedAvatarType = 'initial'; // 'initial', 'color', or 'custom'
+        let selectedAvatarValue = '{{ form.instance.initials|default:"PR" }}';
+        
+        // Handle file upload
+        if (avatarInput && avatarPreview) {
+            avatarInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file && file.type.match('image.*')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        updateAvatarPreview('custom', e.target.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+        
+        // Handle avatar option clicks
+        if (avatarOptions.length > 0) {
+            avatarOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const type = this.dataset.initial ? 'initial' : 'color';
+                    const value = this.dataset.initial || this.dataset.color;
+                    updateAvatarPreview(type, value);
+                });
+            });
+        }
+        
+        function updateAvatarPreview(type, value) {
+            if (!avatarPreview) return;
+            
+            selectedAvatarType = type;
+            selectedAvatarValue = value;
+            
+            // Update visual feedback for avatar options
+            if (avatarOptions.length > 0) {
+                avatarOptions.forEach(opt => {
+                    const optType = opt.dataset.initial ? 'initial' : 'color';
+                    const optValue = opt.dataset.initial || opt.dataset.color;
+                    
+                    if (optType === type && optValue === value) {
+                        opt.classList.add('border', 'border-3', 'border-white');
+                        opt.style.transform = 'scale(1.1)';
+                    } else {
+                        opt.classList.remove('border', 'border-3', 'border-white');
+                        opt.style.transform = '';
+                    }
+                });
+            }
+            
+            // Update preview
+            if (type === 'custom' && typeof value === 'string') {
+                // Custom image upload
+                if (avatarPreview.tagName === 'IMG') {
+                    avatarPreview.src = value;
+                } else {
+                    const newImg = document.createElement('img');
+                    newImg.id = 'avatar-preview';
+                    newImg.src = value;
+                    newImg.className = 'img-fluid rounded-circle w-100 h-100 object-fit-cover';
+                    avatarPreview.parentNode.replaceChild(newImg, avatarPreview);
+                }
+            } else if (type === 'initial') {
+                // Initials avatar
+                const initialsDiv = document.createElement('div');
+                initialsDiv.id = 'avatar-preview';
+                initialsDiv.className = 'profile-avatar-initials rounded-circle d-flex align-items-center justify-content-center w-100 h-100';
+                
+                // Set a consistent color based on the initials
+                const colors = ['#e50914', '#0d6efd', '#198754', '#ffc107', '#6f42c1'];
+                const colorIndex = value.toString().split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
+                
+                initialsDiv.style.backgroundColor = colors[colorIndex];
+                initialsDiv.innerHTML = `<span class="display-4 fw-bold text-uppercase">${value}</span>`;
+                
+                avatarPreview.parentNode.replaceChild(initialsDiv, avatarPreview);
+            } else if (type === 'color') {
+                // Color block avatar
+                const colorDiv = document.createElement('div');
+                colorDiv.id = 'avatar-preview';
+                colorDiv.className = 'rounded-circle w-100 h-100';
+                colorDiv.style.backgroundColor = value;
+                
+                avatarPreview.parentNode.replaceChild(colorDiv, avatarPreview);
+            }
+        }
+        
+        // Toggle maturity levels based on kids profile
+        const kidsToggle = document.getElementById('{{ form.is_kids.id_for_label }}');
+        const maturityLevels = document.querySelectorAll('input[name="maturity_level"]');
+        
+        function updateMaturityLevels() {
+            if (!kidsToggle) return;
+            
+            const isKids = kidsToggle.checked;
+            maturityLevels.forEach(level => {
+                const label = level.closest('.form-check');
+                if (!label) return;
+                
+                const description = label.querySelector('.text-muted');
+                
+                if (isKids) {
+                    if (level.value === '7+') {
+                        level.checked = true;
+                        label.classList.remove('text-muted');
+                        if (description) description.style.opacity = '1';
+                    } else {
+                        level.disabled = true;
+                        label.classList.add('text-muted');
+                        if (description) description.style.opacity = '0.5';
+                    }
+                } else {
+                    level.disabled = false;
+                    label.classList.remove('text-muted');
+                    if (description) description.style.opacity = '1';
+                }
+            });
+        }
+        
+        if (kidsToggle) {
+            kidsToggle.addEventListener('change', updateMaturityLevels);
+            // Initialize on page load
+            updateMaturityLevels();
+        }
+        
+        // Form validation
+        const form = document.querySelector('form.needs-validation');
+        if (form) {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        }
+        
+        // Initialize with the first avatar option selected
+        if (avatarOptions.length > 0) {
+            const firstOption = avatarOptions[0];
+            const type = firstOption.dataset.initial ? 'initial' : 'color';
+            const value = firstOption.dataset.initial || firstOption.dataset.color;
+            updateAvatarPreview(type, value);
+        }
+        
+        // Handle name input to update initials
+        const nameInput = document.getElementById('{{ form.name.id_for_label }}');
+        if (nameInput) {
+            nameInput.addEventListener('input', function() {
+                const name = this.value.trim();
+                if (selectedAvatarType === 'initial') {
+                    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'PR';
+                    updateAvatarPreview('initial', initials);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,101 @@
+<nav class="navbar navbar-expand-lg navbar-dark {% if not transparent %}bg-dark{% endif %} py-3" {% if transparent %}style="background: linear-gradient(to bottom, rgba(0,0,0,0.7) 10%, transparent);"{% endif %}>
+    <div class="container">
+        <a class="navbar-brand me-4" href="{% url 'movies:home' %}">
+            <h1 class="h3 mb-0 text-danger fw-bold">AIFLIX</h1>
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="mainNavbar">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link{% if request.resolver_match.url_name == 'home' %} active{% endif %}" 
+                       href="{% url 'movies:home' %}">
+                        Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link{% if request.resolver_match.url_name == 'browse' %} active{% endif %}" 
+                       href="{% url 'movies:browse' %}">
+                        Browse
+                    </a>
+                </li>
+                {% if user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link{% if request.resolver_match.url_name == 'my_list' %} active{% endif %}" 
+                       href="{% url 'profiles:my_list' %}">
+                        My List
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+            
+            <div class="d-flex align-items-center">
+                <div class="search-container me-3">
+                    <form action="{% url 'movies:search' %}" method="get" class="d-flex">
+                        <div class="input-group">
+                            <input type="text" 
+                                   name="q" 
+                                   class="form-control form-control-sm bg-dark text-light border-secondary" 
+                                   placeholder="Search..." 
+                                   aria-label="Search"
+                                   value="{{ request.GET.q }}">
+                            <button class="btn btn-outline-secondary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                {% if user.is_authenticated %}
+                <div class="dropdown">
+                    <button class="btn btn-link text-white text-decoration-none dropdown-toggle d-flex align-items-center" 
+                            type="button" 
+                            id="userDropdown" 
+                            data-bs-toggle="dropdown" 
+                            aria-expanded="false">
+                        {% if user.profile.avatar %}
+                            <img src="{{ user.profile.avatar.url }}" 
+                                 alt="{{ user.username }}" 
+                                 class="rounded-circle me-2" 
+                                 width="32" 
+                                 height="32">
+                        {% else %}
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" 
+                                 style="width: 32px; height: 32px;">
+                                <span class="small">{{ user.initials }}</span>
+                            </div>
+                        {% endif %}
+                        {{ user.username }}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'profiles:profile_list' %}">
+                                <i class="fas fa-user-circle me-2"></i> Manage Profiles
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'accounts:profile' %}">
+                                <i class="fas fa-cog me-2"></i> Account Settings
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">
+                                <i class="fas fa-sign-out-alt me-2"></i> Sign Out
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                {% else %}
+                <div class="d-flex">
+                    <a href="{% url 'accounts:login' %}" class="btn btn-outline-light me-2">Sign In</a>
+                    <a href="{% url 'accounts:register' %}" class="btn btn-danger">Register</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>
