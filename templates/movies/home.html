@@ -626,44 +626,7 @@
     </div>
 </footer>
 
-{% block extra_js %}
-<script>
-// Navbar scroll effect
-window.addEventListener('scroll', function() {
-    const navbar = document.querySelector('.navbar');
-    if (window.scrollY > 50) {
-        navbar.classList.add('scrolled');
-    } else {
-        navbar.classList.remove('scrolled');
-    }
-});
-
-// Add to list functionality
-document.querySelectorAll('.add-to-list').forEach(button => {
-    button.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        const movieId = this.getAttribute('data-movie-id');
-        // Add AJAX call to add to list
-        console.log('Adding movie to list:', movieId);
-        // Show success message
-        const toast = new bootstrap.Toast(document.getElementById('toast'));
-        document.getElementById('toast-message').textContent = 'Added to My List';
-        toast.show();
-    });
-});
-
-// Handle play button clicks
-document.querySelectorAll('.play-button').forEach(button => {
-    button.addEventListener('click', function(e) {
-        e.preventDefault();
-        const movieId = this.getAttribute('data-movie-id');
-        window.location.href = `/movies/watch/${movieId}/`;
-    });
-});
-</script>
-{% endblock %}
-    {% if trending_movies %}
+{% if trending_movies %}
     <section class="mb-5">
         <h2 class="section-title mb-3">Trending Now</h2>
         <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
@@ -784,6 +747,25 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error:', error));
         });
     }
+
+    // Navbar scroll effect
+    window.addEventListener('scroll', function() {
+        const navbar = document.querySelector('.navbar');
+        if (window.scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+
+    // Handle play button clicks
+    document.querySelectorAll('.play-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const movieId = this.getAttribute('data-movie-id');
+            window.location.href = `/movies/watch/${movieId}/`;
+        });
+    });
 });
 </script>
 {% endblock %}

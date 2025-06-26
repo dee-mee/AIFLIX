@@ -55,6 +55,7 @@ class Movie(models.Model):
     genres = models.ManyToManyField(Genre, related_name='movies')
     is_featured = models.BooleanField(default=False)
     is_trending = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True, help_text="Whether this movie is active and should be shown on the site")
     imdb_rating = models.FloatField(default=0.0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

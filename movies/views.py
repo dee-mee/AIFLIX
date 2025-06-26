@@ -49,18 +49,15 @@ def home(request):
     if not genre_filter:
         trending_movies = base_queryset.filter(
             is_trending=True
-        ).order_by('-trending_score', '-release_date')[:10]
+        ).order_by('-is_trending', '-release_date')[:10]
     else:
-        trending_movies = base_queryset.order_by('-trending_score', '-release_date')[:10]
+        trending_movies = base_queryset.order_by('-release_date')[:10]
     
-    # Popular content (based on ratings, views, and recency)
-    popular_movies = base_queryset.annotate(
-        popularity_score=(
-            F('views') * 0.4 + 
-            F('average_rating') * 60 +  # Assuming 10-point scale
-            F('created_at__year') * 0.1  # Slight boost for newer content
-        )
-    ).order_by('-popularity_score')[:10]
+    # Popular content (based on ratings and release date)
+    popular_movies = base_queryset.order_by(
+        '-imdb_rating',  # Sort by IMDB rating (highest first)
+        '-release_date'  # Then by newest first
+    )[:10]
     
     # Recently added content
     recent_movies = base_queryset.order_by('-created_at')[:10]
@@ -87,7 +84,7 @@ def home(request):
     
     # Get popular genres (genres with most movies)
     popular_genres = Genre.objects.annotate(
-        num_movies=Count('movie', filter=Q(movie__is_active=True))
+        num_movies=Count('movies', filter=Q(movies__is_active=True))
     ).filter(
         num_movies__gt=0
     ).order_by('-num_movies')[:8]
@@ -193,7 +190,7 @@ def search_movies(request):
     query = request.GET.get('q', '').strip()
     
     if not query:
-        return redirect('home')
+        return redirect('movies:home')
     
     # Search in title, description, and genres
     results = Movie.objects.filter(
