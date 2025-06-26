@@ -18,17 +18,17 @@ def register(request):
     return render(request, 'registration/register.html', {'form': form})
 
 def user_login(request):
-    """Handle user login."""
+    """Handle user login with Netflix-style interface."""
     if request.method == 'POST':
         form = CustomAuthenticationForm(data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            messages.success(request, f'Welcome back, {user.username}!')
-            return redirect('movies:home')
+            next_url = request.POST.get('next', 'movies:home')
+            return redirect(next_url)
     else:
         form = CustomAuthenticationForm()
-    return render(request, 'registration/login.html', {'form': form})
+    return render(request, 'accounts/login_netflix.html', {'form': form})
 
 def user_logout(request):
     """Handle user logout."""

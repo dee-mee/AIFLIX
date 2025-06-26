@@ -1,11 +1,11 @@
 {% extends 'base/base.html' %}
 {% load static %}
 
-{% block title %}Sign Up - AIFLIX{% endblock %}
+{% block title %}Sign In - AIFLIX{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* Hide the main navbar on signup page */
+    /* Hide the main navbar on login page */
     .navbar {
         display: none !important;
     }
@@ -17,7 +17,7 @@
         min-height: 100vh;
         display: flex;
         flex-direction: column;
-        padding-top: 0 !important;
+        padding-top: 0 !important; /* Remove the padding for navbar */
     }
 
     .login-header {
@@ -94,7 +94,7 @@
         border-radius: 4px;
         font-size: 16px;
         font-weight: 600;
-        padding: 16px;
+        padding: 12px;
         width: 100%;
         margin: 24px 0 12px;
     }
@@ -145,6 +145,47 @@
         text-decoration: underline;
     }
 
+
+    .footer {
+        background: rgba(0, 0, 0, 0.75);
+        color: #757575;
+        padding: 30px 0;
+        margin-top: auto;
+    }
+
+    .footer-content {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .footer p {
+        margin: 0 0 30px;
+    }
+
+    .footer-links {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .footer-links a {
+        color: #757575;
+        text-decoration: none;
+        font-size: 13px;
+    }
+
+    .footer-links a:hover {
+        text-decoration: underline;
+    }
+
+    .footer-bottom {
+        font-size: 11px;
+        color: #757575;
+        margin-top: 24px;
+    }
+
     .error-message {
         background: #e87c03;
         color: white;
@@ -152,46 +193,6 @@
         padding: 8px 10px;
         margin-bottom: 16px;
         font-size: 14px;
-    }
-    
-    .footer {
-        background: rgba(0, 0, 0, 0.75);
-        color: #757575;
-        padding: 30px 0;
-        margin-top: auto;
-    }
-    
-    .footer-content {
-        max-width: 1000px;
-        margin: 0 auto;
-        padding: 0 20px;
-    }
-    
-    .footer p {
-        margin: 0 0 30px;
-    }
-    
-    .footer-links {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 15px;
-        margin-bottom: 20px;
-    }
-    
-    .footer-links a {
-        color: #757575;
-        text-decoration: none;
-        font-size: 13px;
-    }
-    
-    .footer-links a:hover {
-        text-decoration: underline;
-    }
-    
-    .footer-bottom {
-        font-size: 11px;
-        color: #757575;
-        margin-top: 24px;
     }
 </style>
 {% endblock %}
@@ -206,69 +207,47 @@
 
 <main class="login-container">
     <div class="login-box">
-        <h1 class="login-title">Sign Up</h1>
+        <h1 class="login-title">Sign In</h1>
         
-        {% if form.non_field_errors %}
-            <div class="error-message">
-                {% for error in form.non_field_errors %}
-                    {{ error }}
-                {% endfor %}
-            </div>
+        {% if form.errors %}
+        <div class="error-message">
+            Sorry, we can't find an account with this email address. Please try again or 
+            <a href="{% url 'accounts:signup' %}" style="color: white; text-decoration: underline;">create a new account</a>.
+        </div>
         {% endif %}
         
-        <form method="post" novalidate>
+        <form method="post" action="{% url 'accounts:login' %}">
             {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
             
             <div class="mb-3">
                 <input type="text" name="username" class="form-control" id="id_username" 
-                       value="{{ form.username.value|default:'' }}" placeholder="Username" required>
-                {% if form.username.errors %}
-                    <div class="error-message">
-                        {{ form.username.errors.0 }}
-                    </div>
-                {% endif %}
+                       value="{{ form.username.value|default:'' }}" placeholder="Email or phone number" required>
             </div>
             
-            <div class="mb-3">
-                <input type="email" name="email" class="form-control" id="id_email" 
-                       value="{{ form.email.value|default:'' }}" placeholder="Email" required>
-                {% if form.email.errors %}
-                    <div class="error-message">
-                        {{ form.email.errors.0 }}
-                    </div>
-                {% endif %}
+            <div class="mb-2">
+                <input type="password" name="password" class="form-control" id="id_password" 
+                       placeholder="Password" required>
             </div>
             
-            <div class="mb-3">
-                <input type="password" name="password1" class="form-control" 
-                       id="id_password1" placeholder="Password" required>
-                {% if form.password1.errors %}
-                    <div class="error-message">
-                        {{ form.password1.errors.0 }}
-                    </div>
-                {% endif %}
-            </div>
+            <button type="submit" class="btn btn-login">Sign In</button>
             
-            <div class="mb-3">
-                <input type="password" name="password2" class="form-control" 
-                       id="id_password2" placeholder="Confirm Password" required>
-                {% if form.password2.errors %}
-                    <div class="error-message">
-                        {{ form.password2.errors.0 }}
-                    </div>
-                {% endif %}
-            </div>
-            
-            <button type="submit" class="btn btn-login">Sign Up</button>
-            
-            <div class="login-help">
-                <p>This page is protected by Google reCAPTCHA to ensure you're not a bot. 
-                <a href="#" style="color: #0071eb;">Learn more.</a></p>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="rememberMe">
+                <label class="form-check-label" for="rememberMe">
+                    Remember me
+                </label>
+                <a href="#" class="float-end" style="color: #b3b3b3; text-decoration: none;">Need help?</a>
             </div>
         </form>
         
+        <div class="login-help">
+            <p>This page is protected by Google reCAPTCHA to ensure you're not a bot. 
+            <a href="#" style="color: #0071eb;">Learn more.</a></p>
+        </div>
+        
         <div class="signup-now">
-            Already have an account? <a href="{% url 'accounts:login' %}">Sign in now</a>.
+            New to AIFLIX? <a href="{% url 'accounts:register' %}">Sign up now</a>.
         </div>
     </div>
 </main>
@@ -285,43 +264,8 @@
             <a href="#">Corporate Information</a>
         </div>
         <div class="footer-bottom">
-            <p> 2025 AIFLIX. All rights reserved.</p>
+            <p>© 2025 AIFLIX. All rights reserved.</p>
         </div>
     </div>
 </footer>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-// Form validation
-(function () {
-    'use strict'
-    
-    // Fetch all the forms we want to apply custom Bootstrap validation styles to
-    var forms = document.querySelectorAll('.needs-validation')
-    
-    // Loop over them and prevent submission
-    Array.prototype.slice.call(forms)
-        .forEach(function (form) {
-            form.addEventListener('submit', function (event) {
-                if (!form.checkValidity()) {
-                    event.preventDefault()
-                    event.stopPropagation()
-                }
-                form.classList.add('was-validated')
-            }, false)
-        })
-    
-    // Toggle password visibility
-    document.querySelectorAll('.toggle-password').forEach(function(button) {
-        button.addEventListener('click', function() {
-            const passwordInput = this.previousElementSibling;
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            this.querySelector('i').classList.toggle('fa-eye');
-            this.querySelector('i').classList.toggle('fa-eye-slash');
-        });
-    });
-})()
-</script>
 {% endblock %}

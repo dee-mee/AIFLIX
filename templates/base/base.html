@@ -589,6 +589,7 @@
 </head>
 <body>
     <!-- Navigation -->
+    {% block navbar %}
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'movies:home' %}">AIFLIX</a>
@@ -644,6 +645,7 @@
             </div>
         </div>
     </nav>
+    {% endblock %}
 
     <!-- Main Content -->
     <main class="main-content">
