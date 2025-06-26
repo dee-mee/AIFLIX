@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'accounts',
     'movies',
     'profiles',
+    'aiflix',
 ]
 
 MIDDLEWARE = [

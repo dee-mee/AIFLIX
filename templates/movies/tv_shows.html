@@ -1,0 +1,514 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}TV Shows | AIFLIX{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Banner */
+    .hero-banner {
+        position: relative;
+        height: 80vh;
+        min-height: 600px;
+        max-height: 1000px;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        display: flex;
+        align-items: flex-end;
+        padding: 0 4%;
+        margin-bottom: 3rem;
+        background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 50%, transparent 70%),
+                    linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 90%);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 0 2% 4rem;
+        width: 96%;
+    }
+    
+    .hero-content {
+        max-width: 800px;
+        z-index: 2;
+        margin-bottom: 8rem;
+        padding: 2rem;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 8px;
+        backdrop-filter: blur(5px);
+        border-left: 4px solid #e50914;
+    }
+    
+    .hero-title {
+        font-size: 4.5rem;
+        font-weight: 900;
+        margin-bottom: 1.5rem;
+        color: #fff;
+        text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+        line-height: 1.1;
+        letter-spacing: -1px;
+        margin-top: 0;
+    }
+    
+    .hero-description {
+        font-size: 1.3rem;
+        margin-bottom: 2rem;
+        color: #e5e5e5;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        max-width: 600px;
+        line-height: 1.6;
+    }
+    
+    .hero-actions {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .hero-button {
+        padding: 0.8rem 2.5rem;
+        border: none;
+        border-radius: 4px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.8rem;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        min-width: 180px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    
+    .hero-button-primary {
+        background: #e50914;
+        color: white;
+        border: 2px solid #e50914;
+    }
+    
+    .hero-button-primary:hover {
+        background: #f40612;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(228, 9, 20, 0.4);
+    }
+    
+    .hero-button-secondary {
+        background: rgba(109, 109, 110, 0.3);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(5px);
+    }
+    
+    .hero-button-secondary:hover {
+        background: rgba(109, 109, 110, 0.5);
+        border-color: white;
+        transform: translateY(-2px);
+    }
+    
+    .hero-button:hover {
+        opacity: 0.9;
+        transform: scale(1.05);
+    }
+    
+    .content-section {
+        padding: 1.5rem 4%;
+        margin-bottom: 3rem;
+        position: relative;
+    }
+    
+    .content-section::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    }
+    
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.8rem;
+        position: relative;
+        padding-left: 15px;
+    }
+    
+    .section-header::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: #e50914;
+        border-radius: 2px;
+    }
+    
+    .section-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #fff;
+        margin: 0;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        letter-spacing: -0.5px;
+    }
+    
+    .view-all {
+        color: #e5e5e5;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        background: rgba(255,255,255,0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .view-all:hover {
+        color: #fff;
+        background: rgba(255,255,255,0.2);
+        transform: translateX(3px);
+    }
+    
+    .content-row {
+        display: flex;
+        gap: 1.5rem;
+        overflow-x: auto;
+        padding: 1.5rem 0.5rem;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        scroll-behavior: smooth;
+        position: relative;
+    }
+    
+    .content-row::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .content-row::after {
+        content: '';
+        flex: 0 0 1rem;
+    }
+    
+    .content-row::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .content-card {
+        flex: 0 0 auto;
+        width: 280px;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        position: relative;
+        background: #181818;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .content-card:hover {
+        transform: scale(1.05) translateY(-10px);
+        z-index: 2;
+        box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+        border-color: rgba(255,255,255,0.1);
+    }
+    
+    .content-card img {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.5s ease;
+    }
+    
+    .content-card:hover img {
+        transform: scale(1.05);
+    }
+    
+    .content-info {
+        padding: 1.2rem 1.5rem;
+        background: #181818;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .content-info::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #e50914, #f5a623);
+    }
+    
+    .content-title {
+        font-weight: 700;
+        margin: 0.5rem 0 0.8rem;
+        color: #fff;
+        font-size: 1.1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .content-meta {
+        font-size: 0.85rem;
+        color: #a3a3a3;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+        align-items: center;
+    }
+    
+    .content-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .content-meta .rating {
+        color: #f5c518;
+        font-weight: 600;
+    }
+    
+    .genre-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+        margin: 2rem 0 0;
+    }
+    
+    .genre-tag {
+        background: rgba(255, 255, 255, 0.08);
+        padding: 0.5rem 1.2rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        color: #e5e5e5;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255,255,255,0.1);
+        font-weight: 500;
+    }
+    
+    .genre-tag:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-2px);
+        border-color: rgba(255,255,255,0.2);
+    }
+    
+    /* Loading Animation */
+    @keyframes shimmer {
+        0% { background-position: -1000px 0; }
+        100% { background-position: 1000px 0; }
+    }
+    
+    .skeleton {
+        background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+        background-size: 1000px 100%;
+        animation: shimmer 2s infinite linear;
+        border-radius: 4px;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+        .hero-title {
+            font-size: 4rem;
+        }
+        
+        .hero-description {
+            font-size: 1.2rem;
+        }
+        
+        .content-card {
+            width: 240px;
+        }
+    }
+    
+    @media (max-width: 992px) {
+        .hero-title {
+            font-size: 3.5rem;
+        }
+        
+        .hero-banner {
+            height: 70vh;
+            min-height: 500px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.8rem;
+        }
+        
+        .hero-description {
+            font-size: 1.1rem;
+            max-width: 100%;
+        }
+        
+        .hero-content {
+            margin-bottom: 4rem;
+            padding: 1.5rem;
+        }
+        
+        .content-card {
+            width: 200px;
+        }
+        
+        .section-title {
+            font-size: 1.6rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .hero-title {
+            font-size: 2.2rem;
+        }
+        
+        .hero-button {
+            padding: 0.7rem 1.5rem;
+            font-size: 1rem;
+            min-width: 140px;
+        }
+        
+        .content-card {
+            width: 160px;
+        }
+        
+        .hero-banner {
+            height: 60vh;
+            min-height: 400px;
+            margin: 0 0 2rem;
+            width: 100%;
+            border-radius: 0;
+        }
+        
+        .content-section {
+            padding: 1rem 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Banner -->
+{% if featured_show %}
+<div class="hero-banner" style="background-image: url('{{ featured_show.banner_image.url }}');">
+    <div class="hero-content">
+        <h1 class="hero-title">{{ featured_show.title }}</h1>
+        <p class="hero-description">{{ featured_show.description|truncatewords:30 }}</p>
+        <div class="hero-actions">
+            <a href="{% url 'movies:watch_movie' pk=featured_show.id %}" class="hero-button hero-button-primary">
+                <i class="fas fa-play"></i> Play
+            </a>
+            <button class="hero-button hero-button-secondary" id="addToMyList">
+                <i class="fas fa-plus"></i> My List
+            </button>
+        </div>
+        <div class="genre-tags">
+            {% for genre in featured_show.genres.all|slice:":3" %}
+                <span class="genre-tag">{{ genre.name }}</span>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Trending Now -->
+<div class="content-section">
+    <div class="section-header">
+        <h2 class="section-title">Trending Now</h2>
+        <a href="{% url 'movies:browse' %}?content_type=series&sort=trending" class="view-all">View All</a>
+    </div>
+    <div class="content-row">
+        {% for show in trending_shows %}
+            <div class="content-card">
+                <a href="{% url 'movies:movie_detail' pk=show.id slug=show.slug %}">
+                    <img src="{{ show.thumbnail.url }}" alt="{{ show.title }}" loading="lazy">
+                    <div class="content-info">
+                        <h3 class="content-title">{{ show.title }}</h3>
+                        <div class="content-meta">
+                            <span>{{ show.release_date|date:"Y" }}</span>
+                            <span>• {{ show.seasons.count }} Seasons</span>
+                            {% if show.maturity_rating %}
+                                <span>• {{ show.maturity_rating }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Popular on AIFLIX -->
+<div class="content-section">
+    <div class="section-header">
+        <h2 class="section-title">Popular on AIFLIX</h2>
+        <a href="{% url 'movies:browse' %}?content_type=series&sort=popular" class="view-all">View All</a>
+    </div>
+    <div class="content-row">
+        {% for show in popular_shows %}
+            <div class="content-card">
+                <a href="{% url 'movies:movie_detail' pk=show.id slug=show.slug %}">
+                    <img src="{{ show.thumbnail.url }}" alt="{{ show.title }}" loading="lazy">
+                    <div class="content-info">
+                        <h3 class="content-title">{{ show.title }}</h3>
+                        <div class="content-meta">
+                            <span>{{ show.release_date|date:"Y" }}</span>
+                            <span>• {{ show.seasons.count }} Seasons</span>
+                            <span>• ★ {{ show.imdb_rating|default:"N/A" }}</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- New Releases -->
+<div class="content-section">
+    <div class="section-header">
+        <h2 class="section-title">New Releases</h2>
+        <a href="{% url 'movies:browse' %}?content_type=series&sort=latest" class="view-all">View All</a>
+    </div>
+    <div class="content-row">
+        {% for show in new_releases %}
+            <div class="content-card">
+                <a href="{% url 'movies:movie_detail' pk=show.id slug=show.slug %}">
+                    <img src="{{ show.thumbnail.url }}" alt="{{ show.title }}" loading="lazy">
+                    <div class="content-info">
+                        <h3 class="content-title">{{ show.title }}</h3>
+                        <div class="content-meta">
+                            <span>Season {{ show.latest_season.season_number }} Added</span>
+                            <span>• {{ show.episode_count }} Episodes</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Genres -->
+<div class="content-section">
+    <div class="section-header">
+        <h2 class="section-title">Genres</h2>
+    </div>
+    <div class="content-row" style="flex-wrap: wrap; gap: 15px;">
+        {% for genre in genres %}
+            <a href="{% url 'movies:browse_genre' genre_name=genre.slug %}?content_type=series" class="genre-tag" style="font-size: 1rem; padding: 0.5rem 1.25rem;">
+                {{ genre.name }}
+            </a>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

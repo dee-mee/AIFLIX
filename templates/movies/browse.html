@@ -1,0 +1,244 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{% if content_type == 'movie' %}Movies{% elif content_type == 'series' %}TV Shows{% else %}Browse{% endif %} | AIFLIX{% endblock %}
+
+{% block extra_css %}
+<style>
+    .browse-header {
+        padding: 60px 4% 20px;
+        background: linear-gradient(to bottom, rgba(20,20,20,0.8) 0%, rgba(20,20,20,0.4) 100%);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .browse-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+    }
+    
+    .filter-options {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .filter-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .filter-btn:hover, .filter-btn.active {
+        background: #fff;
+        color: #000;
+    }
+    
+    .content-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+        padding: 0 4%;
+        margin-top: 30px;
+    }
+    
+    .content-card {
+        position: relative;
+        border-radius: 4px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .content-card:hover {
+        transform: scale(1.05);
+        z-index: 2;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+    
+    .content-card img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 4px;
+    }
+    
+    .content-info {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 15px;
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+        color: #fff;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .content-card:hover .content-info {
+        opacity: 1;
+    }
+    
+    .content-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    .content-meta {
+        font-size: 0.8rem;
+        color: #ccc;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        padding: 30px 0;
+        gap: 10px;
+    }
+    
+    .pagination a, .pagination span {
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        border-radius: 4px;
+        text-decoration: none;
+        transition: background 0.3s ease;
+    }
+    
+    .pagination a:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .pagination .current {
+        background: #e50914;
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 50px 20px;
+        color: #999;
+        grid-column: 1 / -1;
+    }
+    
+    @media (max-width: 768px) {
+        .content-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 0 15px;
+        }
+        
+        .browse-header {
+            padding: 40px 15px 20px;
+        }
+        
+        .browse-header h1 {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="browse-header">
+    <div class="container">
+        <h1>{% if content_type == 'movie' %}Movies{% elif content_type == 'series' %}TV Shows{% else %}Browse All{% endif %}</h1>
+        
+        <div class="filter-options">
+            <a href="?sort=latest{% if content_type %}&content_type={{ content_type }}{% endif %}" 
+               class="filter-btn {% if sort_by == 'latest' or not sort_by %}active{% endif %}">
+                Latest
+            </a>
+            <a href="?sort=trending{% if content_type %}&content_type={{ content_type }}{% endif %}" 
+               class="filter-btn {% if sort_by == 'trending' %}active{% endif %}">
+                Trending
+            </a>
+            <a href="?sort=popular{% if content_type %}&content_type={{ content_type }}{% endif %}" 
+               class="filter-btn {% if sort_by == 'popular' %}active{% endif %}">
+                Popular
+            </a>
+            <a href="?sort=rating{% if content_type %}&content_type={{ content_type }}{% endif %}" 
+               class="filter-btn {% if sort_by == 'rating' %}active{% endif %}">
+                Top Rated
+            </a>
+            
+            {% if selected_genre %}
+                <span class="filter-btn active">
+                    {{ selected_genre.name }}
+                    <a href="?{% if content_type %}content_type={{ content_type }}{% if sort_by %}&sort={{ sort_by }}{% endif %}{% endif %}" class="ms-2">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </span>
+            {% endif %}
+        </div>
+        
+        {% if all_genres %}
+        <div class="genre-filters">
+            {% for genre in all_genres %}
+                <a href="?genre={{ genre.slug }}{% if content_type %}&content_type={{ content_type }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}" 
+                   class="filter-btn {% if selected_genre and selected_genre.id == genre.id %}active{% endif %}">
+                    {{ genre.name }}
+                </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="content-container">
+    {% if movies %}
+        <div class="content-grid">
+            {% for movie in movies %}
+                <div class="content-card">
+                    <a href="{% if movie.content_type == 'series' %}{% url 'movies:movie_detail' pk=movie.pk slug=movie.slug %}{% else %}{% url 'movies:watch_movie' pk=movie.pk %}{% endif %}">
+                        <img src="{{ movie.thumbnail.url }}" alt="{{ movie.title }}" loading="lazy">
+                        <div class="content-info">
+                            <div class="content-title">{{ movie.title }}</div>
+                            <div class="content-meta">
+                                <span>{{ movie.release_date|date:"Y" }}</span>
+                                {% if movie.content_type == 'series' %}
+                                    <span>• {{ movie.seasons.count }} Seasons</span>
+                                {% else %}
+                                    <span>• {{ movie.duration }} min</span>
+                                {% endif %}
+                                {% if movie.maturity_rating %}
+                                    <span>• {{ movie.maturity_rating }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+        
+        {% if is_paginated %}
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1{% if content_type %}&content_type={{ content_type }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">&laquo; First</a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if content_type %}&content_type={{ content_type }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">Previous</a>
+                {% endif %}
+                
+                <span class="current">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+                
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if content_type %}&content_type={{ content_type }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">Next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if content_type %}&content_type={{ content_type }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">Last &raquo;</a>
+                {% endif %}
+            </div>
+        {% endif %}
+        
+    {% else %}
+        <div class="no-results">
+            <h3>No content found</h3>
+            <p>Try adjusting your filters or check back later for new additions.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

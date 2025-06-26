@@ -1,4 +1,38 @@
-{% load active_link %}
+{% load static %}
+
+
+
+<style>
+/* Custom styles for navbar active state */
+.navbar .nav-link {
+    color: #e5e5e5 !important;
+    position: relative;
+    margin: 0 10px;
+    padding: 5px 0 !important;
+    transition: color 0.3s ease;
+}
+
+.navbar .nav-link:hover {
+    color: #b3b3b3 !important;
+}
+
+.navbar .nav-link.active {
+    color: #fff !important;
+    font-weight: 600 !important;
+}
+
+.navbar .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #e50914;
+    transform: scaleX(1);
+    transition: transform 0.3s ease;
+}
+</style>
 
 <nav class="navbar navbar-expand-lg navbar-dark {% if not transparent %}bg-dark{% endif %} py-3" {% if transparent %}style="background: linear-gradient(to bottom, rgba(0,0,0,0.7) 10%, transparent);"{% endif %}>
     <div class="container">
@@ -13,20 +47,38 @@
         <div class="collapse navbar-collapse" id="mainNavbar">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link {% active_link 'movies:home' %}" 
+                    <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active fw-bold{% endif %}" 
                        href="{% url 'movies:home' %}">
                         Home
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% active_link 'movies:browse' %}" 
+                    <a class="nav-link {% if request.resolver_match.url_name == 'browse' or '/browse/' in request.path %}active fw-bold{% endif %}" 
                        href="{% url 'movies:browse' %}">
                         Browse
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'tv_shows' or request.GET.type == 'series' or '/genre/' in request.path and not request.GET.type == 'movie' %}active fw-bold{% endif %}" 
+                       href="{% url 'movies:tv_shows' %}">
+                        TV Shows
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.GET.type == 'movie' or request.GET.content_type == 'movie' or '/movies/' in request.path %}active fw-bold{% endif %}" 
+                       href="{% url 'movies:browse' %}?content_type=movie">
+                        Movies
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.GET.sort == 'trending' or request.GET.sort == 'popular' %}active fw-bold{% endif %}" 
+                       href="{% url 'movies:browse' %}?sort=trending">
+                        New & Popular
+                    </a>
+                </li>
                 {% if user.is_authenticated %}
                 <li class="nav-item">
-                    <a class="nav-link {% active_link 'profiles:my_list' %}" 
+                    <a class="nav-link {% if request.resolver_match.url_name == 'my_list' %}active fw-bold{% endif %}" 
                        href="{% url 'profiles:my_list' %}">
                         My List
                     </a>

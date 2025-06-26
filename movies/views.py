@@ -24,48 +24,109 @@ def browse(request):
     """Browse all available content with filtering options."""
     # Get filter parameters
     genre_slug = request.GET.get('genre')
-    content_type = request.GET.get('type', 'all')  # 'movie', 'series', or 'all'
-    sort_by = request.GET.get('sort', 'latest')  # 'latest', 'title', 'rating', 'year'
+    content_type = request.GET.get('content_type')  # 'movie' or 'series'
+    sort_by = request.GET.get('sort', 'latest')  # 'latest', 'trending', 'popular', 'rating'
     
     # Start with base queryset
     movies = get_base_queryset()
     
     # Apply content type filter
-    if content_type == 'movie':
-        movies = movies.filter(type='movie')
-    elif content_type == 'series':
-        movies = movies.filter(type='series')
+    if content_type in ['movie', 'series']:
+        movies = movies.filter(content_type=content_type)
     
     # Apply genre filter if provided
-    genre = None
+    selected_genre = None
     if genre_slug:
         try:
-            genre = Genre.objects.get(slug=genre_slug)
-            movies = movies.filter(genres=genre)
+            selected_genre = Genre.objects.get(slug=genre_slug)
+            movies = movies.filter(genres=selected_genre)
         except Genre.DoesNotExist:
             pass
     
     # Apply sorting
     if sort_by == 'title':
         movies = movies.order_by('title')
+    elif sort_by == 'trending':
+        movies = movies.filter(is_trending=True).order_by('-release_date')
+    elif sort_by == 'popular':
+        movies = movies.order_by('-imdb_rating')
     elif sort_by == 'rating':
-        movies = movies.order_by('-average_rating', '-release_date')
-    elif sort_by == 'year':
-        movies = movies.order_by('-release_date')
+        movies = movies.order_by('-imdb_rating', '-release_date')
     else:  # latest
         movies = movies.order_by('-release_date')
     
     # Get all genres for filter sidebar
     all_genres = Genre.objects.all().order_by('name')
     
+    # Pagination
+    paginator = Paginator(movies, 20)  # Show 20 items per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     context = {
-        'movies': movies,
+        'movies': page_obj,
+        'page_obj': page_obj,
         'all_genres': all_genres,
-        'selected_genre': genre,
+        'selected_genre': selected_genre,
         'content_type': content_type,
         'sort_by': sort_by,
+        'is_paginated': page_obj.has_other_pages(),
     }
     return render(request, 'movies/browse.html', context)
+
+def tv_shows(request):
+    """TV Shows landing page with featured and trending TV shows."""
+    # Get featured TV show (most recent trending show)
+    featured_show = get_base_queryset().filter(
+        content_type='series',
+        is_trending=True
+    ).order_by('-release_date').first()
+    
+    # If no trending show, get the most recent show
+    if not featured_show:
+        featured_show = get_base_queryset().filter(
+            content_type='series'
+        ).order_by('-release_date').first()
+    
+    # Get trending shows (excluding the featured one)
+    trending_shows = get_base_queryset().filter(
+        content_type='series',
+        is_trending=True
+    ).exclude(id=featured_show.id if featured_show else None)[:10]
+    
+    # Get popular shows (by IMDB rating)
+    popular_shows = get_base_queryset().filter(
+        content_type='series'
+    ).order_by('-imdb_rating')[:10]
+    
+    # Get new releases (latest 10 shows)
+    new_releases = get_base_queryset().filter(
+        content_type='series'
+    ).order_by('-release_date')[:10]
+    
+    # Annotate with latest season and episode count
+    from django.db.models import Max, Count
+    new_releases = new_releases.annotate(
+        latest_season=Max('seasons__season_number'),
+        episode_count=Count('seasons__episodes')
+    )
+    
+    # Get all genres for TV shows
+    from django.db.models import Count
+    genres = Genre.objects.filter(
+        movies__content_type='series'
+    ).distinct().annotate(
+        num_shows=Count('movies', filter=Q(movies__content_type='series'))
+    ).order_by('-num_shows')
+    
+    context = {
+        'featured_show': featured_show,
+        'trending_shows': trending_shows,
+        'popular_shows': popular_shows,
+        'new_releases': new_releases,
+        'genres': genres,
+    }
+    return render(request, 'movies/tv_shows.html', context)
 
 def home(request):
     """Home page with featured and trending content."""

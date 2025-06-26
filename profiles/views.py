@@ -39,10 +39,11 @@ def profile_list(request):
         request.session['profile_id'] = profiles[0].id
         return redirect('movies:home')
     
-    # If user has a selected profile and is accessing the profile list,
-    # we might want to redirect them to the home page
-    if 'profile_id' in request.session and request.GET.get('force') != 'true' and profiles.exists():
-        return redirect('movies:home')
+    # Allow users to access the profile list at any time
+    # Only redirect if they have no profiles at all
+    if not profiles.exists() and 'profile_id' in request.session:
+        del request.session['profile_id']
+        messages.warning(request, 'Your selected profile no longer exists. Please create a new one.')
     
     return render(request, 'profiles/profile_list.html', {
         'profiles': profiles,

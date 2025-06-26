@@ -1,0 +1,161 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Account Settings - AIFLIX{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h4 class="mb-0">Account Settings</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#profile" type="button" role="tab" 
+                                    aria-controls="profile" aria-selected="true">
+                                Profile Information
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="password-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#password" type="button" role="tab" 
+                                    aria-controls="password" aria-selected="false">
+                                Change Password
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="profileTabsContent">
+                        <!-- Profile Information Tab -->
+                        <div class="tab-pane fade show active" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                            <form method="post" action="{% url 'accounts:profile' %}" class="needs-validation" novalidate>
+                                {% csrf_token %}
+                                <input type="hidden" name="update_profile" value="1">
+                                
+                                <div class="mb-3">
+                                    <label for="id_username" class="form-label">Username</label>
+                                    <input type="text" class="form-control" id="id_username" 
+                                           value="{{ user.username }}" disabled>
+                                    <div class="form-text">Username cannot be changed.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="id_email" class="form-label">Email address</label>
+                                    <input type="email" class="form-control" id="id_email" 
+                                           name="email" value="{{ user.email }}" required>
+                                    <div class="invalid-feedback">
+                                        Please provide a valid email address.
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="id_first_name" class="form-label">First Name</label>
+                                    <input type="text" class="form-control" id="id_first_name" 
+                                           name="first_name" value="{{ user.first_name }}">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="id_last_name" class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" id="id_last_name" 
+                                           name="last_name" value="{{ user.last_name }}">
+                                </div>
+                                
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Save Changes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Change Password Tab -->
+                        <div class="tab-pane fade" id="password" role="tabpanel" aria-labelledby="password-tab">
+                            <form method="post" action="{% url 'accounts:profile' %}" class="needs-validation" novalidate>
+                                {% csrf_token %}
+                                <input type="hidden" name="change_password" value="1">
+                                
+                                <div class="mb-3">
+                                    <label for="id_old_password" class="form-label">Current Password</label>
+                                    <input type="password" class="form-control" id="id_old_password" 
+                                           name="old_password" required>
+                                    <div class="invalid-feedback">
+                                        Please enter your current password.
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="id_new_password1" class="form-label">New Password</label>
+                                    <input type="password" class="form-control" id="id_new_password1" 
+                                           name="new_password1" required>
+                                    <div class="form-text">
+                                        <small>Your password must be at least 8 characters long and not too common.</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="id_new_password2" class="form-label">Confirm New Password</label>
+                                    <input type="password" class="form-control" id="id_new_password2" 
+                                           name="new_password2" required>
+                                    <div class="invalid-feedback">
+                                        Passwords do not match.
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-key me-2"></i>Change Password
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Bootstrap validation script -->
+<script>
+// Example starter JavaScript for disabling form submissions if there are invalid fields
+(function () {
+  'use strict'
+
+  // Fetch all the forms we want to apply custom Bootstrap validation styles to
+  var forms = document.querySelectorAll('.needs-validation')
+
+  // Loop over them and prevent submission
+  Array.prototype.slice.call(forms)
+    .forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault()
+          event.stopPropagation()
+        }
+
+        form.classList.add('was-validated')
+      }, false)
+    })
+})()
+
+// Add password confirmation validation
+var password1 = document.getElementById('id_new_password1');
+var password2 = document.getElementById('id_new_password2');
+
+function validatePassword() {
+  if (password1.value !== password2.value) {
+    password2.setCustomValidity("Passwords don't match");
+  } else {
+    password2.setCustomValidity('');
+  }
+}
+
+if (password1 && password2) {
+  password1.onchange = validatePassword;
+  password2.onkeyup = validatePassword;
+}
+</script>
+{% endblock %}
