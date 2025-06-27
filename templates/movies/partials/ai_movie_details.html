@@ -1,0 +1,132 @@
+{% if movie.is_ai_generated or movie.content_category %}
+<div class="ai-details mt-4">
+    <h3 class="section-title mb-3"><i class="fas fa-robot me-2"></i>AI Content Details</h3>
+    <div class="row g-3">
+        {% if movie.content_category %}
+        <div class="col-12 col-md-6">
+            <div class="detail-item">
+                <span class="detail-label">Content Type:</span>
+                <span class="detail-value">
+                    {% if movie.content_category == 'ai_generated' %}
+                        <i class="fas fa-magic me-1"></i> AI-Generated Movie
+                    {% elif movie.content_category == 'ai_upscaled' %}
+                        <i class="fas fa-expand-arrows-alt me-1"></i> AI-Upscaled Content
+                    {% elif movie.content_category == 'user_created' %}
+                        <i class="fas fa-user-edit me-1"></i> User Creation
+                    {% elif movie.content_category == 'ai_series' %}
+                        <i class="fas fa-tv me-1"></i> AI-Generated Series
+                    {% else %}
+                        {{ movie.get_content_category_display }}
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if movie.ai_model_used %}
+        <div class="col-12 col-md-6">
+            <div class="detail-item">
+                <span class="detail-label">AI Model:</span>
+                <span class="detail-value">{{ movie.ai_model_used }}</span>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if movie.original_quality %}
+        <div class="col-12 col-md-6">
+            <div class="detail-item">
+                <span class="detail-label">Original Quality:</span>
+                <span class="detail-value">{{ movie.original_quality }}</span>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if movie.upscale_technique %}
+        <div class="col-12 col-md-6">
+            <div class="detail-item">
+                <span class="detail-label">Upscaling Technique:</span>
+                <span class="detail-value">{{ movie.upscale_technique }}</span>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if movie.generation_parameters %}
+        <div class="col-12">
+            <div class="detail-item">
+                <span class="detail-label">Generation Parameters:</span>
+                <div class="generation-params mt-2 p-3 bg-dark rounded">
+                    <pre class="text-muted mb-0"><code>{{ movie.generation_parameters|linebreaksbr }}</code></pre>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.ai-details {
+    background-color: rgba(30, 30, 30, 0.5);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+    border-left: 3px solid #e50914;
+}
+
+.ai-details .section-title {
+    font-size: 1.5rem;
+    color: #fff;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.ai-details .section-title i {
+    color: #e50914;
+    margin-right: 0.5rem;
+}
+
+.detail-item {
+    margin-bottom: 1rem;
+}
+
+.detail-label {
+    display: block;
+    font-size: 0.85rem;
+    color: #999;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-value {
+    display: block;
+    font-size: 1rem;
+    color: #fff;
+    word-break: break-word;
+}
+
+.generation-params {
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    border: 1px solid #333;
+}
+
+.generation-params pre {
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .ai-details {
+        padding: 1rem;
+    }
+    
+    .section-title {
+        font-size: 1.25rem;
+    }
+}
+</style>
+{% endif %}

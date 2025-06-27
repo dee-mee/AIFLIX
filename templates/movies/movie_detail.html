@@ -63,6 +63,9 @@
                     <p>{{ movie.description }}</p>
                 </div>
                 
+                <!-- AI Content Details -->
+                {% include 'movies/partials/ai_movie_details.html' with movie=movie %}
+                
                 <div class="mb-4">
                     <h5>Genres</h5>
                     <div class="d-flex flex-wrap gap-2">

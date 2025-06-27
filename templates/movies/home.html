@@ -530,42 +530,9 @@
 {% block content %}
 <!-- Hero Section -->
 <div class="hero-section">
-    <div class="hero-content">
-        {% if featured_movie %}
-            <span class="hero-badge">Featured Now on AIFLIX</span>
-            <h1 class="hero-title">{{ featured_movie.title }}</h1>
-            <p class="hero-description">{{ featured_movie.overview|default:""|truncatewords:30 }}</p>
-            <div class="hero-actions">
-                {% if featured_movie.id %}
-                <a href="{% url 'movies:watch_movie' pk=featured_movie.id %}" class="btn-play">
-                    <i class="fas fa-play me-2"></i> Play Now
-                </a>
-                {% endif %}
-                {% if featured_movie.id %}
-                <a href="{% url 'home' %}" class="btn-info">
-                    <i class="fas fa-info-circle me-2"></i> More Info
-                </a>
-                {% endif %}
-            </div>
-        {% else %}
-            <h1 class="hero-title">Welcome to AIFLIX</h1>
-            <p class="hero-description">Stream unlimited movies and TV shows. Anytime, anywhere. Start your free trial today!</p>
-            <div class="hero-actions">
-                <a href="{% url 'movies:browse' %}?content_type=movie" class="btn-play">
-                    <i class="fas fa-film me-2"></i> Browse All Movies
-                </a>
-            </div>
-        {% endif %}
-    </div>
-</div>
-
-<!-- Filter Bar -->
-<div class="filter-bar">
-    <div class="filter-container">
-        <div class="filter-group">
-            <span class="filter-label">Genres:</span>
-            <select class="filter-select" id="genreFilter">
-                <option value="">All Genres</option>
+    <div class="container-fluid px-0">
+        <div class="hero-slider">
+            <!-- Featured content will be loaded here via JavaScript -->
                 {% for genre in genres %}
                 <option value="{{ genre.slug }}">{{ genre.name }}</option>
                 {% endfor %}

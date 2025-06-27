@@ -1,0 +1,310 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}AI Content - AIFLIX{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ai-home-hero {
+        position: relative;
+        height: 60vh;
+        min-height: 500px;
+        background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                    url('{% static "img/ai-hero-bg.jpg" %}') no-repeat center center;
+        background-size: cover;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: white;
+        margin-bottom: 3rem;
+    }
+    
+    .ai-hero-content {
+        max-width: 800px;
+        padding: 0 2rem;
+    }
+    
+    .ai-hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        margin-bottom: 1.5rem;
+        line-height: 1.1;
+    }
+    
+    .ai-hero-subtitle {
+        font-size: 1.5rem;
+        font-weight: 300;
+        margin-bottom: 2rem;
+        line-height: 1.4;
+        opacity: 0.9;
+    }
+    
+    .ai-categories-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+        margin: 3rem 0;
+    }
+    
+    .ai-category-card {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        aspect-ratio: 16/9;
+        background: #1a1a1a;
+        border: 1px solid #333;
+    }
+    
+    .ai-category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .ai-category-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(transparent, rgba(0,0,0,0.8));
+        padding: 1.5rem 1rem 1rem;
+        color: white;
+        z-index: 2;
+    }
+    
+    .ai-category-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem;
+        color: #fff;
+    }
+    
+    .ai-category-count {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin: 0;
+        color: #ddd;
+    }
+    
+    .ai-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(229, 9, 20, 0.9);
+        color: #fff;
+        font-size: 0.8rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        z-index: 3;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .trending-section {
+        margin: 4rem 0;
+    }
+    
+    .section-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: #fff;
+        display: flex;
+        align-items: center;
+    }
+    
+    .section-title i {
+        margin-right: 1rem;
+        color: #e50914;
+    }
+    
+    @media (max-width: 768px) {
+        .ai-home-hero {
+            height: 50vh;
+            min-height: 400px;
+        }
+        
+        .ai-hero-title {
+            font-size: 2.5rem;
+        }
+        
+        .ai-hero-subtitle {
+            font-size: 1.2rem;
+        }
+        
+        .ai-categories-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ai-home-hero">
+    <div class="ai-hero-content">
+        <h1 class="ai-hero-title">AI-Generated Content</h1>
+        <p class="ai-hero-subtitle">
+            Explore a new frontier of entertainment with our collection of AI-generated movies, 
+            upscaled classics, and user-created content. Experience the future of filmmaking.
+        </p>
+    </div>
+</div>
+
+<div class="container">
+    <h2 class="section-title"><i class="fas fa-robot"></i> AI Content Categories</h2>
+    
+    <div class="ai-categories-grid">
+        <!-- AI-Generated Movies -->
+        <a href="{% url 'movies:ai_generated' %}" class="ai-category-card">
+            <div class="ai-badge">Popular</div>
+            <div class="ai-category-overlay">
+                <h3 class="ai-category-title">AI-Generated Movies</h3>
+                <p class="ai-category-count">{{ ai_generated_count }} titles</p>
+            </div>
+            <img src="{% static 'img/ai-generated.jpg' %}" alt="AI-Generated Movies" class="img-fluid">
+        </a>
+        
+        <!-- AI-Upscaled Classics -->
+        <a href="{% url 'movies:ai_upscaled' %}" class="ai-category-card">
+            <div class="ai-badge">4K</div>
+            <div class="ai-category-overlay">
+                <h3 class="ai-category-title">AI-Upscaled Classics</h3>
+                <p class="ai-category-count">{{ ai_upscaled_count }} titles</p>
+            </div>
+            <img src="{% static 'img/ai-upscaled.jpg' %}" alt="AI-Upscaled Classics" class="img-fluid">
+        </a>
+        
+        <!-- User Creations -->
+        <a href="{% url 'movies:user_created' %}" class="ai-category-card">
+            <div class="ai-badge">Community</div>
+            <div class="ai-category-overlay">
+                <h3 class="ai-category-title">User Creations</h3>
+                <p class="ai-category-count">{{ user_created_count }} titles</p>
+            </div>
+            <img src="{% static 'img/user-created.jpg' %}" alt="User Creations" class="img-fluid">
+        </a>
+        
+        <!-- AI-Generated Series -->
+        <a href="{% url 'movies:ai_series' %}" class="ai-category-card">
+            <div class="ai-badge">Binge</div>
+            <div class="ai-category-overlay">
+                <h3 class="ai-category-title">AI-Generated Series</h3>
+                <p class="ai-category-count">{{ ai_series_count }} series</p>
+            </div>
+            <img src="{% static 'img/ai-series.jpg' %}" alt="AI-Generated Series" class="img-fluid">
+        </a>
+    </div>
+    
+    <!-- Trending AI Content -->
+    {% if trending_ai %}
+    <div class="trending-section">
+        <h2 class="section-title"><i class="fas fa-fire"></i> Trending AI Content</h2>
+        <div class="row">
+            {% for movie in trending_ai %}
+            <div class="col-6 col-md-4 col-lg-3 mb-4">
+                {% include 'movies/partials/movie_card.html' with movie=movie %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- AI-Generated Movies Section -->
+    {% if ai_generated %}
+    <div class="section-spacing">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="section-title"><i class="fas fa-film"></i> AI-Generated Movies</h2>
+            <a href="{% url 'movies:ai_generated' %}" class="btn btn-sm btn-outline-light">View All</a>
+        </div>
+        <div class="row">
+            {% for movie in ai_generated %}
+            <div class="col-6 col-md-4 col-lg-3 mb-4">
+                {% include 'movies/partials/movie_card.html' with movie=movie %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- AI-Upscaled Classics Section -->
+    {% if ai_upscaled %}
+    <div class="section-spacing">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="section-title"><i class="fas fa-star"></i> AI-Upscaled Classics</h2>
+            <a href="{% url 'movies:ai_upscaled' %}" class="btn btn-sm btn-outline-light">View All</a>
+        </div>
+        <div class="row">
+            {% for movie in ai_upscaled %}
+            <div class="col-6 col-md-4 col-lg-3 mb-4">
+                {% include 'movies/partials/movie_card.html' with movie=movie %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- User Creations Section -->
+    {% if user_creations %}
+    <div class="section-spacing">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="section-title"><i class="fas fa-users"></i> User Creations</h2>
+            <a href="{% url 'movies:user_created' %}" class="btn btn-sm btn-outline-light">View All</a>
+        </div>
+        <div class="row">
+            {% for movie in user_creations %}
+            <div class="col-6 col-md-4 col-lg-3 mb-4">
+                {% include 'movies/partials/movie_card.html' with movie=movie %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- AI-Generated Series Section -->
+    {% if ai_series %}
+    <div class="section-spacing">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="section-title"><i class="fas fa-tv"></i> AI-Generated Series</h2>
+            <a href="{% url 'movies:ai_series' %}" class="btn btn-sm btn-outline-light">View All</a>
+        </div>
+        <div class="row">
+            {% for series in ai_series %}
+            <div class="col-6 col-md-4 col-lg-3 mb-4">
+                {% include 'movies/partials/movie_card.html' with movie=series %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add any interactive elements here
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // Lazy load images
+        const lazyImages = document.querySelectorAll('img.lazy');
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.dataset.src;
+                    img.classList.remove('lazy');
+                    observer.unobserve(img);
+                }
+            });
+        });
+
+        lazyImages.forEach(img => imageObserver.observe(img));
+    });
+</script>
+{% endblock %}
