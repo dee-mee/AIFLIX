@@ -52,6 +52,19 @@
         gap: 15px;
     }
     
+    .rating-stars {
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .rating-star {
+        transition: color 0.2s;
+    }
+
+    .rating-star:hover, .rating-star.active {
+        color: #ffc107 !important;
+    }
+    
     .control-buttons button {
         background: none;
         border: none;
@@ -197,6 +210,17 @@
                             {% for genre in movie.genres.all %}
                                 <span class="badge bg-secondary">{{ genre.name }}</span>
                             {% endfor %}
+                            
+                            <!-- Rating -->
+                            <div class="mt-3">
+                                <h6>Your Rating</h6>
+                                <div class="rating-stars">
+                                    {% for i in "12345"|make_list %}
+                                        <i class="fas fa-star rating-star {% if user_rating and forloop.counter <= user_rating %}text-warning{% else %}text-secondary{% endif %}" 
+                                           data-rating="{{ forloop.counter }}"></i>
+                                    {% endfor %}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -221,6 +245,8 @@
     </div>
 </div>
 {% endblock %}
+
+
 
 {% block extra_js %}
 <script>
@@ -255,25 +281,114 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Update watch history via AJAX
-    function updateWatchHistory(progress) {
-        const url = '{% url "profiles:update_watch_history" movie.id %}';
-        
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': '{{ csrf_token }}',
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            body: `progress=${progress}`
-        })
-        .catch(error => console.error('Error updating watch history:', error));
-    }
+// Update watch history via AJAX
+function updateWatchHistory(progress) {
+    const url = '{% url "profiles:update_watch_history" movie_id=movie.id %}';
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: `progress=${progress}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status !== 'success') {
+            console.error('Failed to update watch history:', data.message);
+        }
+    })
+    .catch(error => console.error('Error updating watch history:', error));
+}
     
     // Set video duration when metadata is loaded
     video.addEventListener('loadedmetadata', function() {
         durationEl.textContent = formatTime(video.duration);
+    });
+    
+    // Rating functionality
+    const ratingStars = document.querySelectorAll('.rating-star');
+    
+    ratingStars.forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = parseInt(this.dataset.rating, 10);
+            const movieId = '{{ movie.id }}';
+            const url = `/browse/api/rate/${movieId}/`;  // This will be /browse/api/rate/1/
+            console.log('Sending rating:', { rating, movieId, url });
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: `rating=${rating}`
+            })
+            .then(response => {
+                console.log('Raw response:', response);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.status === 'success') {
+                    // Update star colors
+                    ratingStars.forEach((s) => {
+                        const starRating = parseInt(s.dataset.rating, 10);
+                        if (starRating <= rating) {
+                            s.classList.add('text-warning');
+                            s.classList.remove('text-secondary');
+                        } else {
+                            s.classList.remove('text-warning');
+                            s.classList.add('text-secondary');
+                        }
+                    });
+                    
+                    // Show success message
+                    const toast = new bootstrap.Toast(document.getElementById('toast'));
+                    document.getElementById('toast-message').textContent = 'Rating saved!';
+                    toast.show();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                console.error('Error details:', {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack
+                });
+            });
+        });
+        
+        // Hover effect for stars
+        star.addEventListener('mouseover', function() {
+            const hoverRating = parseInt(this.dataset.rating, 10);
+            ratingStars.forEach(s => {
+                const starRating = parseInt(s.dataset.rating, 10);
+                if (starRating <= hoverRating) {
+                    s.classList.add('text-warning');
+                    s.classList.remove('text-secondary');
+                } else {
+                    s.classList.remove('text-warning');
+                    s.classList.add('text-secondary');
+                }
+            });
+        });
+        
+        star.addEventListener('mouseout', function() {
+            ratingStars.forEach(s => {
+                const starRating = parseInt(s.dataset.rating, 10);
+                if (starRating <= parseInt('{{ user_rating|default:0 }}', 10)) {
+                    s.classList.add('text-warning');
+                    s.classList.remove('text-secondary');
+                } else {
+                    s.classList.remove('text-warning');
+                    s.classList.add('text-secondary');
+                }
+            });
+        });
     });
     
     // Play/Pause toggle

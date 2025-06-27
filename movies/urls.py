@@ -27,7 +27,7 @@ urlpatterns = [
     # Genres
     path('browse/genre/<str:genre_name>/', views.browse_by_genre, name='browse_genre'),
     
-    # API endpoints (keep at root for backward compatibility)
+    # API endpoints
     path('api/rate/<int:movie_id>/', views.rate_movie, name='rate_movie'),
     
     # AI Content Categories

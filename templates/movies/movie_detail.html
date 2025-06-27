@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function() {
         star.addEventListener('click', function() {
             const rating = this.dataset.rating;
             const movieId = '{{ movie.id }}';
-            const url = `/movies/api/rate/${movieId}/`;
+            const url = `/browse/api/rate/${movieId}/`;
             
             fetch(url, {
                 method: 'POST',

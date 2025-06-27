@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q, Count, F, Case, When, Value, IntegerField
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import JsonResponse, Http404
@@ -383,7 +384,7 @@ def watch_movie(request, pk):
     """View for watching a movie or episode."""
     if 'profile_id' not in request.session:
         messages.warning(request, 'Please select a profile first.')
-        return redirect('profile_list')
+        return redirect('profiles:profile_list')
     
     movie = get_object_or_404(Movie, pk=pk)
     
@@ -394,9 +395,21 @@ def watch_movie(request, pk):
         defaults={'progress': 0.0}
     )
     
+    # Get user's rating for this movie
+    user_rating = None
+    try:
+        rating_obj = Rating.objects.get(
+            movie=movie,
+            profile_id=request.session['profile_id']
+        )
+        user_rating = rating_obj.rating
+    except Rating.DoesNotExist:
+        pass
+    
     context = {
         'movie': movie,
         'watch_history': watch_history,
+        'user_rating': user_rating,
     }
     
     return render(request, 'movies/watch.html', context)
@@ -457,11 +470,28 @@ def browse_by_genre(request, genre_name):
 @require_POST
 def rate_movie(request, movie_id):
     """Rate a movie or update existing rating."""
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"Rate movie endpoint hit. Method: {request.method}, Path: {request.path}")
+    logger.info(f"Request data: {request.POST}")
+    
     if 'profile_id' not in request.session:
+        logger.warning("No profile_id in session")
         return JsonResponse({'status': 'error', 'message': 'No profile selected'}, status=400)
     
-    movie = get_object_or_404(Movie, id=movie_id)
-    rating_value = int(request.POST.get('rating', 0))
+    try:
+        movie = Movie.objects.get(id=movie_id)
+        logger.info(f"Found movie: {movie.title}")
+    except Movie.DoesNotExist:
+        logger.error(f"Movie with id {movie_id} not found")
+        return JsonResponse({'status': 'error', 'message': 'Movie not found'}, status=404)
+        
+    try:
+        rating_value = int(request.POST.get('rating', 0))
+        logger.info(f"Rating value: {rating_value}")
+    except (TypeError, ValueError):
+        logger.error("Invalid rating value")
+        return JsonResponse({'status': 'error', 'message': 'Invalid rating value'}, status=400)
     
     if not 1 <= rating_value <= 5:
         return JsonResponse({'status': 'error', 'message': 'Invalid rating'}, status=400)

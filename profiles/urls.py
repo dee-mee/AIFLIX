@@ -11,4 +11,5 @@ urlpatterns = [
     path('toggle-my-list/<int:movie_id>/', views.toggle_my_list, name='toggle_my_list'),
     path('delete/<int:profile_id>/', views.delete_profile, name='delete_profile'),
     path('create/', CreateProfileView.as_view(), name='create_profile'),
+    path('watch-history/update/<int:movie_id>/', views.update_watch_history, name='update_watch_history'),
 ]

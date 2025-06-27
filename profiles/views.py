@@ -8,6 +8,9 @@ from .forms import ProfileForm, ProfileSelectionForm
 from movies.models import Movie
 from django.views.generic import CreateView
 from django.urls import reverse_lazy
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 class CreateProfileView(CreateView):
     model = Profile
@@ -238,3 +241,35 @@ def delete_profile(request, profile_id):
     
     messages.success(request, f'Profile "{profile_name}" has been deleted.')
     return redirect('profiles:profile_list')
+
+@login_required
+@require_http_methods(["POST"])
+@csrf_exempt  # For demo purposes only - in production, use proper CSRF handling
+@require_POST
+def update_watch_history(request, movie_id):
+    """Update watch history for the current profile and movie."""
+    if 'profile_id' not in request.session:
+        return JsonResponse({'status': 'error', 'message': 'No profile selected'}, status=400)
+    
+    try:
+        profile = Profile.objects.get(id=request.session['profile_id'], user=request.user)
+        movie = Movie.objects.get(id=movie_id)
+        
+        # Get progress from request body (form data or JSON)
+        progress = float(request.POST.get('progress', 0))
+        
+        # Update or create watch history
+        watch_history, created = WatchHistory.objects.update_or_create(
+            profile=profile,
+            movie=movie,
+            defaults={'progress': progress}
+        )
+        
+        return JsonResponse({
+            'status': 'success', 
+            'progress': watch_history.progress,
+            'created': created
+        })
+        
+    except (Profile.DoesNotExist, Movie.DoesNotExist, ValueError) as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
