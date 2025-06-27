@@ -16,6 +16,8 @@ class LoginRequiredMiddleware:
             reverse('accounts:register'),
             reverse('accounts:password_reset'),
             reverse('accounts:password_reset_done'),
+            reverse('profiles:profile_list'),
+            '/profiles/select/',  # Allow access to profile selection
             '/static/',
             '/media/',
         ]

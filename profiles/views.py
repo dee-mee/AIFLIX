@@ -36,14 +36,37 @@ def profile_list(request):
     
     # If user has only one profile and it's not selected, select it automatically
     if len(profiles) == 1 and 'profile_id' not in request.session:
-        request.session['profile_id'] = profiles[0].id
+        profile = profiles[0]
+        request.session['profile_id'] = str(profile.id)
+        request.session['profile_name'] = profile.name
+        if profile.avatar:
+            request.session['profile_avatar'] = profile.avatar.url
         return redirect('movies:home')
     
     # Allow users to access the profile list at any time
     # Only redirect if they have no profiles at all
     if not profiles.exists() and 'profile_id' in request.session:
-        del request.session['profile_id']
+        # Clear all profile-related session data
+        for key in ['profile_id', 'profile_name', 'profile_avatar']:
+            if key in request.session:
+                del request.session[key]
         messages.warning(request, 'Your selected profile no longer exists. Please create a new one.')
+    
+    # Ensure the selected profile still exists
+    if 'profile_id' in request.session:
+        try:
+            profile = profiles.get(id=request.session['profile_id'])
+            # Update session data if needed
+            request.session['profile_name'] = profile.name
+            if profile.avatar:
+                request.session['profile_avatar'] = profile.avatar.url
+            elif 'profile_avatar' in request.session:
+                del request.session['profile_avatar']
+        except Profile.DoesNotExist:
+            # Clear invalid profile data
+            for key in ['profile_id', 'profile_name', 'profile_avatar']:
+                if key in request.session:
+                    del request.session[key]
     
     return render(request, 'profiles/profile_list.html', {
         'profiles': profiles,
@@ -54,29 +77,65 @@ def select_profile(request, profile_id):
     """
     Select a profile to use for the current session.
     """
-    profile = get_object_or_404(Profile, id=profile_id, user=request.user)
-    request.session['profile_id'] = profile.id
+    import logging
+    logger = logging.getLogger(__name__)
     
-    # Set session expiry to 30 days
-    request.session.set_expiry(60 * 60 * 24 * 30)
-    
-    # Redirect to the next parameter if it exists, otherwise to the home page
-    next_url = request.GET.get('next', 'movies:home')
-    
-    # Basic security check to prevent open redirects
-    if not (next_url.startswith('/') or next_url.startswith('http')):
-        next_url = 'movies:home'
-    
-    # If it's not a safe URL, default to home
-    from urllib.parse import urlparse
     try:
-        result = urlparse(next_url)
-        if result.scheme or result.netloc:
+        # Get the profile and ensure it belongs to the current user
+        profile = get_object_or_404(Profile, id=profile_id, user=request.user)
+        
+        # Debug logging
+        logger.info(f"Selecting profile: {profile.name} (ID: {profile.id}) for user: {request.user.username}")
+        
+        # Clear any existing profile data
+        if 'profile_id' in request.session:
+            del request.session['profile_id']
+        if 'profile_name' in request.session:
+            del request.session['profile_name']
+            
+        # Set the new profile in the session
+        request.session['profile_id'] = str(profile.id)  # Ensure it's a string for consistency
+        request.session['profile_name'] = profile.name
+        if profile.avatar:
+            request.session['profile_avatar'] = profile.avatar.url
+        else:
+            request.session.pop('profile_avatar', None)
+        
+        # Set session expiry to 30 days
+        request.session.set_expiry(60 * 60 * 24 * 30)
+        
+        # Save the session explicitly
+        request.session.save()
+        
+        # Debug logging
+        logger.info(f"Session after setting profile: {dict(request.session)}")
+        
+        # Get the next URL, default to movies:home
+        next_url = request.GET.get('next', 'movies:home')
+        
+        # Basic security check to prevent open redirects
+        if not (next_url.startswith('/') or next_url.startswith('http')):
             next_url = 'movies:home'
-    except:
-        next_url = 'movies:home'
-    
-    return redirect(next_url)
+        
+        # If it's not a safe URL, default to home
+        from urllib.parse import urlparse
+        try:
+            result = urlparse(next_url)
+            if result.scheme or result.netloc:
+                next_url = 'movies:home'
+        except:
+            next_url = 'movies:home'
+        
+        logger.info(f"Redirecting to: {next_url}")
+        
+        # Force a hard redirect to ensure the session is saved
+        response = redirect(next_url)
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error selecting profile: {str(e)}", exc_info=True)
+        messages.error(request, "An error occurred while selecting the profile. Please try again.")
+        return redirect('profiles:profile_list')
 
 @login_required
 def my_list(request):

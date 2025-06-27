@@ -124,24 +124,51 @@
                             id="userDropdown" 
                             data-bs-toggle="dropdown" 
                             aria-expanded="false">
-                        {% if user.profile.avatar %}
-                            <img src="{{ user.profile.avatar.url }}" 
-                                 alt="{{ user.username }}" 
-                                 class="rounded-circle me-2" 
-                                 width="32" 
-                                 height="32">
+                        {% if request.session.profile_id %}
+                            {% if request.session.profile_avatar %}
+                                <img src="{{ request.session.profile_avatar }}" 
+                                     alt="{{ request.session.profile_name }}" 
+                                     class="rounded-circle me-2" 
+                                     width="32" 
+                                     height="32">
+                            {% else %}
+                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" 
+                                     style="width: 32px; height: 32px;">
+                                    <span class="small">{{ request.session.profile_name|slice:':2'|upper }}</span>
+                                </div>
+                            {% endif %}
+                            {{ request.session.profile_name }}
                         {% else %}
-                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" 
-                                 style="width: 32px; height: 32px;">
-                                <span class="small">{{ user.initials }}</span>
-                            </div>
+                            {% if user.profile.avatar %}
+                                <img src="{{ user.profile.avatar.url }}" 
+                                     alt="{{ user.username }}" 
+                                     class="rounded-circle me-2" 
+                                     width="32" 
+                                     height="32">
+                            {% else %}
+                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" 
+                                     style="width: 32px; height: 32px;">
+                                    <span class="small">{{ user.initials }}</span>
+                                </div>
+                            {% endif %}
+                            {{ user.username }}
                         {% endif %}
-                        {{ user.username }}
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        {% if request.session.profile_name %}
+                        <li class="px-3 py-2">
+                            <small class="text-muted d-block">Current Profile</small>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-user-circle me-2"></i>
+                                <span class="fw-medium">{{ request.session.profile_name }}</span>
+                            </div>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        {% endif %}
+                        
                         <li>
                             <a class="dropdown-item" href="{% url 'profiles:profile_list' %}">
-                                <i class="fas fa-user-circle me-2"></i> Profiles
+                                <i class="fas fa-sync-alt me-2"></i> Switch Profile
                             </a>
                         </li>
                         <li>
@@ -149,7 +176,6 @@
                                 <i class="fas fa-cog me-2"></i> Account Settings
                             </a>
                         </li>
-                        <li><hr class="dropdown-divider"></li>
 
                         <li>
                             <a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">

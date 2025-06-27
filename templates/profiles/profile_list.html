@@ -6,6 +6,32 @@
 
 {% block extra_css %}
 <style>
+    /* Selected profile styling */
+    .profile-card.selected-profile {
+        position: relative;
+        border: 2px solid #e50914;
+        border-radius: 8px;
+        background-color: rgba(255, 255, 255, 0.05);
+        transform: scale(1.05);
+    }
+    
+    .profile-selected-badge {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        width: 24px;
+        height: 24px;
+        background-color: #e50914;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .profile-selected-badge i {
+        font-size: 12px;
+        color: white;
+    }
     .profiles-container {
         background-color: #141414;
         min-height: 100vh;
@@ -214,7 +240,7 @@
                 <div class="row justify-content-center">
                     {% for profile in profiles %}
                     <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-5 px-2">
-                        <div class="profile-card">
+                        <div class="profile-card {% if request.session.profile_id == profile.id|stringformat:'s' %}selected-profile{% endif %}">
                             <a href="{% url 'profiles:select_profile' profile.id %}" class="text-decoration-none text-center d-block">
                                 <div class="profile-avatar">
                                     {% if profile.avatar %}
@@ -227,8 +253,18 @@
                                     {% if profile.is_kids %}
                                         <span class="kids-badge">Kids</span>
                                     {% endif %}
+                                    {% if request.session.profile_id == profile.id|stringformat:'s' %}
+                                        <div class="profile-selected-badge">
+                                            <i class="fas fa-check"></i>
+                                        </div>
+                                    {% endif %}
                                 </div>
-                                <div class="profile-name">{{ profile.name }}</div>
+                                <div class="profile-name">
+                                    {{ profile.name }}
+                                    {% if request.session.profile_id == profile.id|stringformat:'s' %}
+                                        <small class="d-block text-success">Current</small>
+                                    {% endif %}
+                                </div>
                             </a>
                             
                             <div class="profile-actions">
