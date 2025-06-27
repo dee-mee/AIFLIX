@@ -60,9 +60,6 @@ def select_profile(request, profile_id):
     # Set session expiry to 30 days
     request.session.set_expiry(60 * 60 * 24 * 30)
     
-    # Add a welcome message
-    messages.success(request, f'Welcome back, {profile.name}!')
-    
     # Redirect to the next parameter if it exists, otherwise to the home page
     next_url = request.GET.get('next', 'movies:home')
     

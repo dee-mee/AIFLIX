@@ -3,7 +3,20 @@
 
 
 <style>
-/* Custom styles for navbar active state */
+/* Navbar styling */
+.navbar {
+    padding: 0.5rem 1.5rem;
+}
+
+.navbar-brand {
+    padding: 0.5rem 0;
+    margin-right: 2rem;
+}
+
+.navbar-nav {
+    align-items: center;
+}
+
 .navbar .nav-link {
     color: #e5e5e5 !important;
     position: relative;
@@ -47,51 +60,33 @@
         <div class="collapse navbar-collapse" id="mainNavbar">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'landing' %}active fw-bold{% endif %}" 
-                       href="{% url 'landing' %}">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'landing' or request.path == '/' %}active fw-bold{% endif %}" 
+                       href="{% if user.is_authenticated %}{% url 'movies:home' %}{% else %}{% url 'landing' %}{% endif %}">
                         <i class="fas fa-home me-1"></i> Home
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'browse' %}active fw-bold{% endif %}" 
+                    <a class="nav-link {% if request.resolver_match.url_name == 'browse' and request.resolver_match.namespace == 'movies' and not request.GET.type %}active fw-bold{% endif %}" 
                        href="{% url 'movies:browse' %}">
                         <i class="fas fa-compass me-1"></i> Browse
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'movies' %}active fw-bold{% endif %}" 
+                    <a class="nav-link {% if request.resolver_match.url_name == 'movies' or request.GET.type == 'movie' %}active fw-bold{% endif %}" 
                        href="{% url 'movies:movies' %}">
                         <i class="fas fa-film me-1"></i> Movies
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'tv_shows' %}active fw-bold{% endif %}" 
+                    <a class="nav-link {% if request.resolver_match.url_name == 'tv_shows' or request.GET.type == 'series' or '/genre/' in request.path and not request.GET.type == 'movie' %}active fw-bold{% endif %}" 
                        href="{% url 'movies:tv_shows' %}">
-                        TV Shows
+                        <i class="fas fa-tv me-1"></i> TV Shows
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if request.resolver_match.url_name == 'new_popular' %}active fw-bold{% endif %}" 
                        href="{% url 'movies:new_popular' %}">
                         <i class="fas fa-fire me-1"></i> New & Popular
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'browse' or '/browse/' in request.path %}active fw-bold{% endif %}" 
-                       href="{% url 'movies:browse' %}">
-                        Browse
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'tv_shows' or request.GET.type == 'series' or '/genre/' in request.path and not request.GET.type == 'movie' %}active fw-bold{% endif %}" 
-                       href="{% url 'movies:tv_shows' %}">
-                        TV Shows
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'movies' or request.GET.content_type == 'movie' and request.resolver_match.url_name == 'browse' %}active fw-bold{% endif %}" 
-                       href="{% url 'movies:movies' %}">
-                        Movies
                     </a>
                 </li>
 
@@ -155,11 +150,7 @@
                             </a>
                         </li>
                         <li><hr class="dropdown-divider"></li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if 'tv-shows' in request.path %}active{% endif %}" href="{% url 'movies:tv_shows' %}">
-                                <i class="fas fa-tv me-1"></i> TV Shows
-                            </a>
-                        </li>
+
                         <li>
                             <a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">
                                 <i class="fas fa-sign-out-alt me-2"></i> Sign Out

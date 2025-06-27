@@ -174,32 +174,35 @@ def movies(request):
             content_type='movie'
         ).exclude(id__isnull=True).order_by('-release_date').first()
     
+    # Get base querysets (without slicing)
+    base_queryset = get_base_queryset()
+    
     # Get trending movies (excluding featured)
-    trending = get_base_queryset().filter(
+    trending = base_queryset.filter(
         content_type='movie',
         is_trending=True,
         id__isnull=False
-    ).exclude(id=featured_movie.id if featured_movie else None)[:12]
+    ).exclude(id=featured_movie.id if featured_movie else None)
     
     # Get latest releases
-    latest = get_base_queryset().filter(
+    latest = base_queryset.filter(
         content_type='movie',
         id__isnull=False
-    ).order_by('-release_date')[:12]
+    )
     
     # Get top rated movies
-    top_rated = get_base_queryset().filter(
+    top_rated = base_queryset.filter(
         content_type='movie',
         imdb_rating__isnull=False,
         id__isnull=False
-    ).order_by('-imdb_rating')[:12]
+    )
     
     # Get action movies (example genre)
-    action_movies = get_base_queryset().filter(
+    action_movies = base_queryset.filter(
         content_type='movie',
         genres__name__icontains='action',
         id__isnull=False
-    ).distinct()[:12]
+    ).distinct()
     
     # Get all genres for filter
     from .models import Genre
@@ -216,7 +219,7 @@ def movies(request):
         latest = latest.filter(genres__slug=genre_filter)
         top_rated = top_rated.filter(genres__slug=genre_filter)
     
-    # Apply sorting
+    # Apply sorting to trending
     sort_by = request.GET.get('sort', 'trending')
     if sort_by == 'latest':
         trending = trending.order_by('-release_date')
@@ -226,6 +229,13 @@ def movies(request):
         trending = trending.order_by('-release_date__year', '-imdb_rating')
     elif sort_by == 'title':
         trending = trending.order_by('title')
+    else:  # default trending sort
+        trending = trending.order_by('-is_featured', '-release_date')
+    
+    # Apply ordering and slicing to other querysets
+    latest = latest.order_by('-release_date')[:12]
+    top_rated = top_rated.order_by('-imdb_rating')[:12]
+    action_movies = action_movies[:12]
     
     context = {
         'featured_movie': featured_movie,
@@ -238,8 +248,18 @@ def movies(request):
     return render(request, 'movies/movies.html', context)
 
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
+
+def landing_redirect(request):
+    """Redirect to landing page for guests, home for authenticated users."""
+    if request.user.is_authenticated:
+        return redirect('movies:home')
+    return redirect('landing')
+
+@login_required
 def home(request):
-    """Movies landing page with featured and trending movies."""
+    """Authenticated user's home page with featured and trending movies."""
     from django.db.models import Count, Q
     from datetime import datetime, timedelta
     

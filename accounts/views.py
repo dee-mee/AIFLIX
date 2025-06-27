@@ -7,34 +7,42 @@ from .forms import CustomUserCreationForm, CustomAuthenticationForm, UserProfile
 
 def register(request):
     """Handle user registration."""
+    if request.user.is_authenticated:
+        return redirect('movies:browse')
+        
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            messages.success(request, 'Registration successful! Please create a profile.')
-            return redirect('profiles:profile_list')
+            messages.success(request, 'Registration successful! Welcome to AIFLIX.')
+            return redirect('movies:browse')
     else:
         form = CustomUserCreationForm()
-    return render(request, 'registration/register.html', {'form': form})
+        
+    return render(request, 'registration/register.html', {
+        'form': form,
+        'next': request.GET.get('next', 'movies:browse')
+    })
 
 def user_login(request):
     """Handle user login with Netflix-style interface."""
+    if request.user.is_authenticated:
+        return redirect('movies:browse')
+        
     if request.method == 'POST':
         form = CustomAuthenticationForm(data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            next_url = request.POST.get('next')
-            if not next_url:
-                return redirect('movies:home')
+            next_url = request.POST.get('next') or 'movies:browse'
             return redirect(next_url)
     else:
         form = CustomAuthenticationForm()
     
     context = {
         'form': form,
-        'next': request.GET.get('next', '')
+        'next': request.GET.get('next', 'movies:browse')
     }
     return render(request, 'accounts/login_netflix.html', context)
 
@@ -68,4 +76,4 @@ def user_logout(request):
     """Handle user logout."""
     logout(request)
     messages.info(request, 'You have been logged out.')
-    return redirect('movies:home')
+    return redirect('landing')

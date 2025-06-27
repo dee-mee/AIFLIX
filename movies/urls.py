@@ -4,10 +4,12 @@ from . import views
 
 app_name = 'movies'
 
-# Redirect old root URLs to the new /browse/ paths
 urlpatterns = [
-    # Redirect old root paths to /browse/
-    path('', RedirectView.as_view(url='/browse/', permanent=True)),
+    # Home page (protected, redirects to login if not authenticated)
+    path('home/', views.home, name='home'),
+    
+    # Redirect root to landing page for guests, home for authenticated users
+    path('', views.landing_redirect, name='root_redirect'),
     
     # Main pages under /browse/
     path('browse/', views.browse, name='browse'),

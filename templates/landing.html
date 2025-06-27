@@ -574,7 +574,7 @@
             <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg">
                 <i class="fas fa-play me-2"></i> Get Started
             </a>
-            <a href="{% url 'movies:browse' %}" class="btn btn-outline-light btn-lg">
+            <a href="{% url 'accounts:login' %}?next={% url 'movies:browse' %}" class="btn btn-outline-light btn-lg">
                 <i class="fas fa-search me-2"></i> Browse Content
             </a>
         </div>
@@ -593,12 +593,12 @@
     <div class="container">
         <div class="section-header">
             <h2 class="section-title">Trending Now</h2>
-            <a href="{% url 'movies:browse' %}" class="view-all">View All <i class="fas fa-chevron-right ms-1"></i></a>
+            <a href="{% url 'accounts:login' %}?next={% url 'movies:browse' %}" class="view-all">View All <i class="fas fa-chevron-right ms-1"></i></a>
         </div>
         
         <div class="movie-grid">
             {% for movie in trending_movies %}
-            <a href="{% url 'movies:movie_detail' pk=movie.pk slug=movie.slug|default:'' %}" class="text-decoration-none">
+            <a href="{% url 'accounts:login' %}?next={% url 'movies:movie_detail' pk=movie.pk slug=movie.slug|default:'' %}" class="text-decoration-none">
                 <div class="movie-card">
                     <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="movie-poster" onerror="this.onerror=null; this.src='{{ placeholder_poster }}';">
                     <div class="movie-info">
@@ -657,7 +657,7 @@
             <h2 class="section-title text-center mb-5">Browse by Genre</h2>
             <div class="genre-grid">
                 {% for genre in genres|slice:":8" %}
-                <a href="{% url 'movies:browse_genre' genre_name=genre.name|slugify %}" class="genre-tag">
+                <a href="{% url 'accounts:login' %}?next={% url 'movies:browse_genre' genre_name=genre.name|slugify %}" class="genre-tag">
                     {{ genre.name }}
                 </a>
                 {% endfor %}
@@ -674,7 +674,7 @@
         <p class="hero-description text-center mb-5">Choose your plan and start streaming now. No commitments, cancel anytime.</p>
         <div class="d-flex justify-content-center gap-3">
             <a href="{% url 'accounts:register' %}" class="btn btn-primary" style="font-size: 1.2rem; padding: 0.8rem 2.5rem;">Sign Up Now</a>
-            <a href="{% url 'movies:browse' %}" class="btn btn-outline-light" style="font-size: 1.2rem; padding: 0.8rem 2.5rem;">
+            <a href="{% url 'accounts:login' %}?next={% url 'movies:browse' %}" class="btn btn-outline-light" style="font-size: 1.2rem; padding: 0.8rem 2.5rem;">
                 Browse Content
             </a>
         </div>
