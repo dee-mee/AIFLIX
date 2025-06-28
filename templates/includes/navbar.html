@@ -61,26 +61,8 @@
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
                     <a class="nav-link {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'landing' or request.path == '/' %}active fw-bold{% endif %}" 
-                       href="{% if user.is_authenticated %}{% url 'movies:home' %}{% else %}{% url 'landing' %}{% endif %}">
+                       href="{% url 'landing' %}">
                         <i class="fas fa-home me-1"></i> Home
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'browse' and request.resolver_match.namespace == 'movies' and not request.GET.type %}active fw-bold{% endif %}" 
-                       href="{% url 'movies:browse' %}">
-                        <i class="fas fa-compass me-1"></i> Browse
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'movies' or request.GET.type == 'movie' %}active fw-bold{% endif %}" 
-                       href="{% url 'movies:movies' %}">
-                        <i class="fas fa-film me-1"></i> Movies
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'tv_shows' or request.GET.type == 'series' or '/genre/' in request.path and not request.GET.type == 'movie' %}active fw-bold{% endif %}" 
-                       href="{% url 'movies:tv_shows' %}">
-                        <i class="fas fa-tv me-1"></i> TV Shows
                     </a>
                 </li>
                 <li class="nav-item">
@@ -91,6 +73,12 @@
                 </li>
                 {% if user.is_authenticated %}
                 <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'browse' and request.resolver_match.namespace == 'movies' and not request.GET.type %}active fw-bold{% endif %}" 
+                       href="{% url 'movies:browse' %}">
+                        <i class="fas fa-compass me-1"></i> Browse
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {% if 'ai/' in request.path %}active fw-bold{% endif %}" 
                        href="{% url 'movies:ai_home' %}">
                         <i class="fas fa-robot me-1"></i> AI Content
@@ -99,7 +87,7 @@
                 <li class="nav-item">
                     <a class="nav-link {% if request.resolver_match.url_name == 'my_list' %}active fw-bold{% endif %}" 
                        href="{% url 'profiles:my_list' %}">
-                        My List
+                        <i class="fas fa-list me-1"></i> My List
                     </a>
                 </li>
                 {% endif %}
