@@ -1,6 +1,6 @@
 # AIFLIX - AI-Powered Streaming Platform
 
-<img src="https://raw.githubusercontent.com/dee-mee/AIFLIX/master/images/banner.png" alt="AIFLIX Banner" width="600" height="300">
+<img src="https://raw.githubusercontent.com/dee-mee/AIFLIX/master/images/banner.png" alt="AIFLIX Banner" width="700" height="400">
 
 AIFLIX is a next-generation streaming platform that combines traditional entertainment with cutting-edge AI technology. Our platform offers both traditional content and AI-generated movies and series, providing a unique viewing experience tailored to each user's preferences.
 
