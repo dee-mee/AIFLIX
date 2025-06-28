@@ -188,7 +188,10 @@
                             <div class="mb-3">
                                 <h6>Season {{ season.season_number }}</h6>
                                 {% for episode in season.episodes.all %}
-                                    <a href="{% url 'movies:watch_episode' pk=movie.id episode_id=episode.id %}" class="text-decoration-none">
+                                    <a href="{% url 'movies:watch_episode' pk=movie.id episode_id=episode.id %}" 
+                                       class="text-decoration-none"
+                                       data-season="{{ season.season_number }}"
+                                       data-episode="{{ episode.episode_number }}">
                                         <div class="episode-item d-flex align-items-center mb-2 {% if episode == current_episode %}active{% endif %}">
                                             <img src="{{ episode.thumbnail.url }}" class="episode-thumbnail me-3" alt="{{ episode.title }}">
                                             <div>
@@ -315,6 +318,45 @@ function updateWatchHistory(progress) {
     // Set video duration when metadata is loaded
     video.addEventListener('loadedmetadata', function() {
         durationEl.textContent = formatTime(video.duration);
+    });
+    
+    // Handle video end to autoplay next episode
+    video.addEventListener('ended', function() {
+        {% if current_episode and movie.is_series %}
+            // Get current season and episode numbers
+            const currentSeason = {{ current_episode.season.season_number }};
+            const currentEpisode = {{ current_episode.episode_number }};
+            
+            // Find the next episode URL
+            let nextEpisodeUrl = null;
+            
+            // First try to find next episode in the same season
+            const nextEpisode = document.querySelector(`a[data-season="${currentSeason}"][data-episode="${currentEpisode + 1}"]`);
+            if (nextEpisode) {
+                nextEpisodeUrl = nextEpisode.href;
+            } else {
+                // If no more episodes in current season, try first episode of next season
+                const nextSeason = {{ current_episode.season.season_number|add:1 }};
+                const firstOfNextSeason = document.querySelector(`a[data-season="${nextSeason}"][data-episode="1"]`);
+                if (firstOfNextSeason) {
+                    nextEpisodeUrl = firstOfNextSeason.href;
+                }
+            }
+            
+            // If we found a next episode, redirect to it
+            if (nextEpisodeUrl) {
+                // Update watch history as completed before navigating
+                updateWatchHistory(100);
+                
+                // Small delay before navigation to ensure history is updated
+                setTimeout(() => {
+                    window.location.href = nextEpisodeUrl;
+                }, 1000);
+            } else {
+                // No more episodes, show a message or do nothing
+                console.log('No more episodes to play');
+            }
+        {% endif %}
     });
     
     // Rating functionality

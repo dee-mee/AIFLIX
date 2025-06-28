@@ -1,7 +1,7 @@
 {% load static %}
 
 <div class="movie-card" data-movie-id="{{ movie.id }}" data-content-category="{{ movie.content_category|default:'' }}">
-    <a href="{% if movie.is_series %}{% url 'movies:tv_show_detail' movie.id movie.slug %}{% else %}{% url 'movies:movie_detail' movie.id movie.slug %}{% endif %}" class="movie-card-link">
+    <a href="{% url 'movies:movie_detail' movie.id movie.slug %}" class="movie-card-link">
         <div class="movie-card-poster">
             {% if movie.thumbnail %}
                 <img 
