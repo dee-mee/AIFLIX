@@ -263,24 +263,92 @@ def home(request):
     """Authenticated user's home page with featured and trending movies."""
     from django.db.models import Count, Q
     from datetime import datetime, timedelta
+    import logging
     
-    # Get featured movie (trending or latest)
-    featured_movie = get_base_queryset().filter(
-        content_type='movie',
-        is_trending=True
-    ).exclude(id__isnull=True).order_by('-release_date').first()
+    logger = logging.getLogger(__name__)
     
-    if not featured_movie:
-        featured_movie = get_base_queryset().filter(
-            content_type='movie'
-        ).exclude(id__isnull=True).order_by('-release_date').first()
+    from django.conf import settings
+    import os
+    from .models import Movie  # Import Movie model directly
+    
+    # Debug: Get all movies with banner images directly from the Movie model
+    # Bypass any custom manager or queryset filtering
+    all_movies = list(Movie.objects.raw('SELECT * FROM movies_movie WHERE banner_image != ""'))
+    logger.info(f"Raw SQL query found {len(all_movies)} movies with banners")
+    
+    try:
+        # Get all movies with banner images, ordered by release date (newest first)
+        featured_movies = sorted(
+            [m for m in all_movies if hasattr(m, 'release_date')],
+            key=lambda x: x.release_date,
+            reverse=True
+        )[:5]
+        
+        logger.info(f"Found {len(featured_movies)} movies with banners")
+        
+        # Log movie titles safely
+        if featured_movies:
+            movie_titles = []
+            for movie in featured_movies:
+                try:
+                    title = getattr(movie, 'title', 'No title')
+                    movie_titles.append(title)
+                    
+                    # Debug banner information
+                    if hasattr(movie, 'banner_image') and movie.banner_image:
+                        try:
+                            banner_path = os.path.join(settings.MEDIA_ROOT, str(movie.banner_image))
+                            logger.info(f"  - {title}: {movie.banner_image.url}")
+                            logger.info(f"    Full path: {banner_path}")
+                            logger.info(f"    Exists: {os.path.exists(banner_path)}")
+                        except Exception as e:
+                            logger.error(f"Error checking banner for {title}: {str(e)}")
+                except Exception as e:
+                    logger.error(f"Error processing movie: {str(e)}")
+            
+            logger.info(f"Movies with banners: {movie_titles}")
+        else:
+            logger.warning("No movies with banners found in the database")
+    except Exception as e:
+        logger.error(f"Error processing featured movies: {str(e)}")
+        featured_movies = []
+    
+    # If still no movies with banners, try to get any movie with a thumbnail
+    if not featured_movies:
+        logger.warning("No movies with banners found, falling back to thumbnails")
+        featured_movies = list(Movie.objects.filter(
+            thumbnail__isnull=False
+        ).order_by('-release_date')[:5])
+        
+        if featured_movies:
+            logger.info(f"Found {len(featured_movies)} movies with thumbnails to use as fallback")
+    
+    # Ensure we have a list
+    if not isinstance(featured_movies, list):
+        featured_movies = list(featured_movies) if featured_movies else []
+    
+    # If not enough movies, fill with latest movies
+    if len(featured_movies) < 5:
+        existing_ids = [m.id for m in featured_movies] if featured_movies else []
+        additional_count = 5 - len(featured_movies)
+        
+        additional_movies = list(get_base_queryset().filter(
+            content_type='movie',
+            banner_image__isnull=False
+        ).exclude(id__in=existing_ids).order_by('-release_date')[:additional_count])
+        
+        featured_movies.extend(additional_movies)
+        logger.info(f"Added {len(additional_movies)} additional movies, total now: {len(featured_movies)}")
+    
+    # Get the first featured movie as the default
+    featured_movie = featured_movies[0] if featured_movies else None
     
     # Get trending movies (excluding featured)
     trending = get_base_queryset().filter(
         content_type='movie',
         is_trending=True,
         id__isnull=False
-    ).exclude(id=featured_movie.id if featured_movie else None)[:12]
+    ).exclude(id__in=[m.id for m in featured_movies] if featured_movies else [])[:12]
     
     # Get latest releases
     latest = get_base_queryset().filter(
@@ -328,8 +396,23 @@ def home(request):
     elif sort_by == 'title':
         trending = trending.order_by('title')
     
+    # Ensure featured_movies is a list of movie objects
+    if featured_movies is None:
+        featured_movies = []
+    elif not isinstance(featured_movies, list):
+        try:
+            featured_movies = list(featured_movies)
+        except (TypeError, ValueError):
+            featured_movies = []
+    
+    # Debug information
+    logger.info(f"Preparing to render home page with {len(featured_movies)} featured movies")
+    for i, movie in enumerate(featured_movies, 1):
+        logger.info(f"  {i}. {getattr(movie, 'title', 'No title')} - Banner: {getattr(movie, 'banner_image', 'No banner')}")
+    
     context = {
-        'featured_movie': featured_movie,
+        'featured_movie': featured_movies[0] if featured_movies else None,
+        'featured_movies': featured_movies,
         'trending': trending,
         'latest': latest,
         'top_rated': top_rated,
