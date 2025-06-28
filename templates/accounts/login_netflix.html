@@ -3,7 +3,10 @@
 
 {% block title %}Sign In - AIFLIX{% endblock %}
 
+{% block navbar %}{% endblock %}
+
 {% block extra_css %}
+{{ block.super }}
 <style>
     /* Hide the main navbar on login page */
     .navbar {
@@ -13,197 +16,224 @@
     body {
         background-color: #f3f3f3;
         color: #333;
-        font-family: 'Helvetica Neue', Arial, sans-serif;
         min-height: 100vh;
         display: flex;
         flex-direction: column;
-        padding-top: 0 !important; /* Remove the padding for navbar */
+        padding-top: 0 !important;
     }
 
-    .login-header {
-        padding: 20px 45px;
-        background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%);
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 10;
-    }
-
-    .login-logo {
-        width: 150px;
-        height: auto;
-    }
-
-    .login-container {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: url('https://assets.nflxext.com/ffe/siteui/vlv3/3b69c2df-2f83-4f2f-8016-38d7240b720c/6f3f1c5e-1d3d-4b65-8c5d-1e8f6d6d3c5f/IN-en-20240429-popsignuptwoweeks-perspective_alpha_website_large.jpg') no-repeat center center;
+    /* Base styles */
+    body {
+        background: #000 url('https://assets.nflxext.com/ffe/siteui/vlv3/3b69c2df-2f83-4f2f-8016-38d7240b720c/6f3f1c5e-1d3d-4b65-8c5d-1e8f6d6d3c5f/IN-en-20240429-popsignuptwoweeks-perspective_alpha_website_large.jpg') no-repeat center center;
         background-size: cover;
-        position: relative;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        color: #fff;
     }
-
-    .login-container::before {
+    
+    /* Overlay */
+    body::before {
         content: '';
         position: absolute;
         top: 0;
         left: 0;
-        right: 0;
-        bottom: 0;
+        width: 100%;
+        height: 100%;
         background: rgba(0, 0, 0, 0.7);
         z-index: 1;
     }
-
-    .login-box {
-        background: rgba(0, 0, 0, 0.75);
-        border-radius: 4px;
-        padding: 60px 68px 40px;
-        min-width: 450px;
-        z-index: 2;
+    
+    /* Logo in corner */
+    .logo-corner {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        z-index: 10;
     }
-
+    
+    .logo-corner a {
+        color: #e50914;
+        font-size: 24px;
+        font-weight: 700;
+        text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    /* Main content */
+    .login-container {
+        position: relative;
+        z-index: 2;
+        max-width: 450px;
+        background: rgba(0, 0, 0, 0.75);
+        margin: 80px auto 90px;
+        padding: 60px 68px 40px;
+        border-radius: 4px;
+        min-height: 600px;
+    }
+    
     .login-title {
         color: #fff;
         font-size: 32px;
         font-weight: 600;
         margin-bottom: 28px;
     }
-
+    
+    /* Form elements */
+    .form-group {
+        margin-bottom: 16px;
+    }
+    
     .form-control {
+        width: 100%;
+        height: 50px;
+        padding: 10px 10px 0;
         background: #333;
         border: none;
         border-radius: 4px;
         color: #fff;
-        height: 50px;
-        padding: 16px 20px;
-        margin-bottom: 16px;
+        font-size: 16px;
     }
-
+    
     .form-control:focus {
         background: #454545;
-        color: #fff;
-        box-shadow: none;
+        outline: none;
     }
-
+    
     .btn-login {
+        width: 100%;
         background: #e50914;
         color: #fff;
         border: none;
         border-radius: 4px;
         font-size: 16px;
         font-weight: 600;
-        padding: 12px;
-        width: 100%;
+        padding: 16px;
         margin: 24px 0 12px;
+        cursor: pointer;
     }
-
+    
     .btn-login:hover {
         background: #f40612;
-        color: #fff;
     }
-
-    .form-check {
-        color: #b3b3b3;
-        font-size: 13px;
-        margin-bottom: 16px;
-    }
-
-    .form-check-input:checked {
-        background-color: #e50914;
-        border-color: #e50914;
-    }
-
+    
     .login-help {
         color: #b3b3b3;
-        font-size: 13px;
         margin-top: 10px;
+        font-size: 13px;
     }
-
+    
     .login-help a {
         color: #b3b3b3;
         text-decoration: none;
     }
-
+    
     .login-help a:hover {
         text-decoration: underline;
     }
-
+    
     .signup-now {
         color: #737373;
         margin-top: 16px;
         font-size: 16px;
     }
-
+    
     .signup-now a {
         color: #fff;
         text-decoration: none;
     }
-
+    
     .signup-now a:hover {
         text-decoration: underline;
     }
-
-
-    .footer {
-        background: rgba(0, 0, 0, 0.75);
-        color: #757575;
-        padding: 30px 0;
-        margin-top: auto;
+    
+    .recaptcha {
+        margin-top: 16px;
+        font-size: 13px;
+        color: #8c8c8c;
     }
-
+    
+    .recaptcha a {
+        color: #0071eb;
+        text-decoration: none;
+    }
+    
+    .recaptcha a:hover {
+        text-decoration: underline;
+    }
+    
+    /* Footer */
+    footer {
+        position: relative;
+        z-index: 2;
+        background: rgba(0, 0, 0, 0.75);
+        padding: 30px 0;
+        margin-top: 90px;
+    }
+    
     .footer-content {
         max-width: 1000px;
         margin: 0 auto;
-        padding: 0 20px;
+        padding: 0 4%;
     }
-
-    .footer p {
-        margin: 0 0 30px;
+    
+    .footer-top {
+        margin-bottom: 30px;
     }
-
+    
     .footer-links {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 15px;
-        margin-bottom: 20px;
     }
-
+    
     .footer-links a {
         color: #757575;
         text-decoration: none;
         font-size: 13px;
     }
-
+    
     .footer-links a:hover {
         text-decoration: underline;
     }
-
-    .footer-bottom {
-        font-size: 11px;
+    
+    .select-language {
+        background: #000;
+        border: 1px solid #333;
+        color: #737373;
+        padding: 8px 30px 8px 10px;
+        border-radius: 4px;
+        margin: 20px 0;
+    }
+    
+    .footer-country {
+        font-size: 13px;
         color: #757575;
         margin-top: 24px;
     }
-
-    .error-message {
-        background: #e87c03;
-        color: white;
-        border-radius: 4px;
-        padding: 8px 10px;
-        margin-bottom: 16px;
-        font-size: 14px;
+    
+    /* Responsive */
+    @media (max-width: 767px) {
+        .login-container {
+            padding: 20px;
+            min-height: auto;
+            margin: 80px 20px 40px;
+            width: auto;
+        }
+        
+        .footer-links {
+            grid-template-columns: repeat(2, 1fr);
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-{% block navbar_override %}{% endblock %}
-<header class="login-header">
-    <a href="{% url 'landing' %}">
-        <img src="{% static 'images/logo.png' %}" alt="AIFLIX" class="login-logo">
-    </a>
-</header>
+<div class="logo-corner">
+    <a href="{% url 'landing' %}">AIFLIX</a>
+</div>
 
 <main class="login-container">
     <div class="login-box">
@@ -228,6 +258,11 @@
             <div class="mb-2">
                 <input type="password" name="password" class="form-control" id="id_password" 
                        placeholder="Password" required>
+                <div class="mt-2">
+                    <a href="{% url 'accounts:password_reset' %}" class="text-decoration-none" style="color: #b3b3b3;">
+                        Forgot Password?
+                    </a>
+                </div>
             </div>
             
             <button type="submit" class="btn btn-login">Sign In</button>
@@ -252,20 +287,5 @@
     </div>
 </main>
 
-<footer class="footer">
-    <div class="footer-content">
-        <p>Questions? Call 1-844-505-2993</p>
-        <div class="footer-links">
-            <a href="#">FAQ</a>
-            <a href="#">Help Center</a>
-            <a href="#">Terms of Use</a>
-            <a href="#">Privacy</a>
-            <a href="#">Cookie Preferences</a>
-            <a href="#">Corporate Information</a>
-        </div>
-        <div class="footer-bottom">
-            <p>© 2025 AIFLIX. All rights reserved.</p>
-        </div>
-    </div>
-</footer>
+{% block footer %}{% endblock %}
 {% endblock %}
