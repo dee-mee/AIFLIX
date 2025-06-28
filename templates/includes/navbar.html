@@ -49,7 +49,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark {% if not transparent %}bg-dark{% endif %} py-3" {% if transparent %}style="background: linear-gradient(to bottom, rgba(0,0,0,0.7) 10%, transparent);"{% endif %}>
     <div class="container">
-        <a class="navbar-brand me-4" href="{% url 'landing' %}">
+        <a class="navbar-brand me-4" href="{% url 'movies:home' %}">
             <h1 class="h3 mb-0 text-danger fw-bold">AIFLIX</h1>
         </a>
         
@@ -61,7 +61,7 @@
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
                     <a class="nav-link {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'landing' or request.path == '/' %}active fw-bold{% endif %}" 
-                       href="{% url 'landing' %}">
+                       href="{% url 'movies:home' %}">
                         <i class="fas fa-home me-1"></i> Home
                     </a>
                 </li>

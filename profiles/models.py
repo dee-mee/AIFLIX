@@ -28,12 +28,21 @@ class WatchHistory(models.Model):
     """Tracks what content a profile has watched."""
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='watch_history')
     movie = models.ForeignKey('movies.Movie', on_delete=models.CASCADE)
+    episode = models.ForeignKey('movies.Episode', on_delete=models.CASCADE, null=True, blank=True)
     watched_at = models.DateTimeField(auto_now_add=True)
     progress = models.FloatField(
         default=0.0,
         validators=[MinValueValidator(0.0), MaxValueValidator(100.0)]
     )
     completed = models.BooleanField(default=False)
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['profile', 'movie', 'episode'],
+                name='unique_watch_history'
+            )
+        ]
 
     class Meta:
         verbose_name_plural = 'Watch History'

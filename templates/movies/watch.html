@@ -125,10 +125,18 @@
     <!-- Video Player -->
     <div class="video-container" id="videoContainer">
         <video id="videoPlayer" class="w-100" controls autoplay>
-            {% if movie.video_file %}
-                <source src="{{ movie.video_file.url }}" type="video/mp4">
-            {% elif movie.video_url %}
-                <source src="{{ movie.video_url }}" type="video/mp4">
+            {% if current_episode %}
+                {% if current_episode.video_file %}
+                    <source src="{{ current_episode.video_file.url }}" type="video/mp4">
+                {% elif current_episode.video_url %}
+                    <source src="{{ current_episode.video_url }}" type="video/mp4">
+                {% endif %}
+            {% else %}
+                {% if movie.video_file %}
+                    <source src="{{ movie.video_file.url }}" type="video/mp4">
+                {% elif movie.video_url %}
+                    <source src="{{ movie.video_url }}" type="video/mp4">
+                {% endif %}
             {% endif %}
             Your browser does not support the video tag.
         </video>
@@ -180,14 +188,15 @@
                             <div class="mb-3">
                                 <h6>Season {{ season.season_number }}</h6>
                                 {% for episode in season.episodes.all %}
-                                    <div class="episode-item d-flex align-items-center mb-2 {% if episode == current_episode %}active{% endif %}" 
-                                         data-episode-id="{{ episode.id }}">
-                                        <img src="{{ episode.thumbnail.url }}" class="episode-thumbnail me-3" alt="{{ episode.title }}">
-                                        <div>
-                                            <div class="fw-bold">Episode {{ episode.episode_number }}: {{ episode.title }}</div>
-                                            <small class="text-muted">{{ episode.duration }} min • {{ episode.air_date|date:"M d, Y" }}</small>
+                                    <a href="{% url 'movies:watch_episode' pk=movie.id episode_id=episode.id %}" class="text-decoration-none">
+                                        <div class="episode-item d-flex align-items-center mb-2 {% if episode == current_episode %}active{% endif %}">
+                                            <img src="{{ episode.thumbnail.url }}" class="episode-thumbnail me-3" alt="{{ episode.title }}">
+                                            <div>
+                                                <div class="fw-bold text-white">Episode {{ episode.episode_number }}: {{ episode.title }}</div>
+                                                <small class="text-muted">{{ episode.duration }} min • {{ episode.air_date|date:"M d, Y" }}</small>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </a>
                                 {% endfor %}
                             </div>
                         {% endfor %}

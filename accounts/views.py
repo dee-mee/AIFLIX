@@ -16,13 +16,13 @@ def register(request):
             user = form.save()
             login(request, user)
             messages.success(request, 'Registration successful! Welcome to AIFLIX.')
-            return redirect('movies:browse')
+            return redirect('movies:home')
     else:
         form = CustomUserCreationForm()
         
     return render(request, 'registration/register.html', {
         'form': form,
-        'next': request.GET.get('next', 'movies:browse')
+        'next': request.GET.get('next', 'movies:home')
     })
 
 def user_login(request):
@@ -42,7 +42,7 @@ def user_login(request):
     
     context = {
         'form': form,
-        'next': request.GET.get('next', 'movies:browse')
+        'next': request.GET.get('next', 'movies:home')
     }
     return render(request, 'accounts/login_netflix.html', context)
 
@@ -75,5 +75,4 @@ def profile(request):
 def user_logout(request):
     """Handle user logout."""
     logout(request)
-    messages.info(request, 'You have been logged out.')
     return redirect('landing')

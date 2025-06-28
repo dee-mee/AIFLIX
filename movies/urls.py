@@ -23,6 +23,7 @@ urlpatterns = [
     # Movie/Series detail pages
     path('browse/movie/<int:pk>/<slug:slug>/', views.movie_detail, name='movie_detail'),
     path('browse/watch/<int:pk>/', views.watch_movie, name='watch_movie'),
+    path('browse/watch/<int:pk>/episode/<int:episode_id>/', views.watch_movie, name='watch_episode'),
     
     # Genres
     path('browse/genre/<str:genre_name>/', views.browse_by_genre, name='browse_genre'),

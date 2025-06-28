@@ -463,18 +463,38 @@ def movie_detail(request, pk, slug=None):
     
     return render(request, 'movies/movie_detail.html', context)
 
-def watch_movie(request, pk):
+def watch_movie(request, pk, episode_id=None):
     """View for watching a movie or episode."""
     if 'profile_id' not in request.session:
         messages.warning(request, 'Please select a profile first.')
         return redirect('profiles:profile_list')
     
-    movie = get_object_or_404(Movie, pk=pk)
+    movie = get_object_or_404(Movie.objects.prefetch_related('seasons__episodes'), pk=pk)
+    current_episode = None
     
-    # Update or create watch history
+    # If this is a series and an episode is specified, get the episode
+    if movie.is_series and episode_id:
+        try:
+            current_episode = Episode.objects.select_related('season').get(
+                id=episode_id,
+                season__series=movie
+            )
+        except Episode.DoesNotExist:
+            pass
+    
+    # Get or create watch history
+    watch_history_kwargs = {
+        'profile_id': request.session['profile_id'],
+        'movie': movie,
+    }
+    
+    if current_episode:
+        watch_history_kwargs['episode'] = current_episode
+    else:
+        watch_history_kwargs['episode__isnull'] = True
+    
     watch_history, created = WatchHistory.objects.get_or_create(
-        profile_id=request.session['profile_id'],
-        movie=movie,
+        **watch_history_kwargs,
         defaults={'progress': 0.0}
     )
     
@@ -493,6 +513,7 @@ def watch_movie(request, pk):
         'movie': movie,
         'watch_history': watch_history,
         'user_rating': user_rating,
+        'current_episode': current_episode,
     }
     
     return render(request, 'movies/watch.html', context)
