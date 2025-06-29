@@ -62,7 +62,7 @@
                         </div>
                     {% endif %}
                     
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label for="{{ form.name.id_for_label }}" class="form-label">Name</label>
                         {{ form.name }}
                         {% if form.name.errors %}
@@ -72,7 +72,59 @@
                         {% endif %}
                     </div>
                     
-                    <!-- Add other form fields as needed -->
+                    <!-- Kids Profile Toggle -->
+                    <div class="form-check form-switch mb-4
+                                {% if form.is_kids.errors %}is-invalid{% endif %}">
+                        {{ form.is_kids }}
+                        <label class="form-check-label" for="{{ form.is_kids.id_for_label }}">
+                            <i class="fas fa-child me-1"></i> Kids Profile
+                        </label>
+                        {% if form.is_kids.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.is_kids.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            Kids profiles have parental controls and a simpler interface.
+                        </div>
+                    </div>
+                    
+                    <!-- Kids Avatar Selection (shown when is_kids is checked) -->
+                    <div id="kids-avatar-section" class="mb-4" style="display: none;">
+                        <label class="form-label">Choose a Character</label>
+                        <div class="row g-3">
+                            {% for value, label in form.kids_avatar.field.choices %}
+                                {% if value %}
+                                    <div class="col-4 col-sm-3">
+                                        <input type="radio" class="btn-check" name="kids_avatar" id="avatar-{{ forloop.counter }}" 
+                                               value="{{ value }}" {% if form.kids_avatar.value == value %}checked{% endif %}>
+                                        <label class="btn btn-outline-primary w-100 mb-2" for="avatar-{{ forloop.counter }}">
+                                            <div class="avatar-option">
+                                                <div class="avatar-preview mb-2" style="font-size: 2.5rem;">
+                                                    {{ label|slice:":1" }}
+                                                </div>
+                                                <div class="small">{{ label|slice:"2:" }}</div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Maturity Level (shown when is_kids is not checked) -->
+                    <div id="maturity-level-section" class="mb-4">
+                        <label for="{{ form.maturity_level.id_for_label }}" class="form-label">Maturity Level</label>
+                        {{ form.maturity_level }}
+                        {% if form.maturity_level.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.maturity_level.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            Controls what content is available for this profile.
+                        </div>
+                    </div>
                     
                     <div class="d-grid gap-3 mt-5 pt-3 border-top border-secondary">
                         <button type="submit" class="btn btn-primary btn-lg">
@@ -115,7 +167,7 @@
             </div>
             <div class="modal-footer border-secondary">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form action="{% url 'profiles:delete_profile' form.instance.pk %}" method="post" class="d-inline">
+                <form action="{% url 'profiles:delete' form.instance.pk %}" method="post" class="d-inline">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger">Delete Profile</button>
                 </form>
@@ -141,6 +193,72 @@
                 form.classList.add('was-validated');
             }, false);
         });
+        
+        // Toggle kids profile options
+        const isKidsCheckbox = document.getElementById('{{ form.is_kids.id_for_label }}');
+        const kidsAvatarSection = document.getElementById('kids-avatar-section');
+        const maturityLevelSection = document.getElementById('maturity-level-section');
+        
+        function toggleKidsOptions() {
+            if (isKidsCheckbox.checked) {
+                kidsAvatarSection.style.display = 'block';
+                maturityLevelSection.style.display = 'none';
+                // Set default maturity level for kids
+                document.getElementById('{{ form.maturity_level.id_for_label }}').value = '7+';
+            } else {
+                kidsAvatarSection.style.display = 'none';
+                maturityLevelSection.style.display = 'block';
+            }
+        }
+        
+        // Initialize visibility
+        toggleKidsOptions();
+        
+        // Add change event listener
+        if (isKidsCheckbox) {
+            isKidsCheckbox.addEventListener('change', toggleKidsOptions);
+        }
     });
 </script>
+
+<style>
+    /* Avatar selection styles */
+    .avatar-option {
+        padding: 0.5rem;
+        text-align: center;
+        transition: all 0.2s;
+    }
+    
+    .btn-check:checked + .btn-outline-primary {
+        background-color: rgba(229, 9, 20, 0.1);
+        border-color: #e50914;
+        color: #e50914;
+    }
+    
+    .avatar-preview {
+        width: 100%;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+    
+    /* Form switch styling */
+    .form-check-input:checked {
+        background-color: #e50914;
+        border-color: #e50914;
+    }
+    
+    .form-check-input:focus {
+        box-shadow: 0 0 0 0.25rem rgba(229, 9, 20, 0.25);
+    }
+    
+    /* Hide the default file input */
+    .form-control[type="file"] {
+        opacity: 0;
+        position: absolute;
+        z-index: -1;
+    }
+</style>
 {% endblock %}

@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.db import models
 from .models import Profile, WatchHistory, MyList
 from .forms import ProfileForm, ProfileSelectionForm
 from movies.models import Movie
@@ -30,57 +31,128 @@ class CreateProfileView(CreateView):
 
 @login_required
 def profile_list(request):
-    """List all profiles for the current user."""
-    profiles = request.user.profiles.all()
+    """
+    Display a list of profiles for the current user.
+    If the user has only one profile and not coming from manage, automatically select it.
+    """
+    # Check if we're coming from the manage profiles page
+    from_manage = request.GET.get('from_manage') == '1' or request.session.get('from_manage', False)
     
-    # If user has no profiles, show a message
+    # Clear the from_manage flag from session if it exists
+    if 'from_manage' in request.session:
+        del request.session['from_manage']
+    
+    # Get all profiles for the current user, ordered by name
+    profiles = Profile.objects.filter(user=request.user).order_by('name')
+    
+    # Check if user has any profiles
     if not profiles.exists():
-        messages.info(request, 'No profiles found. Please contact support for assistance.')
+        return redirect('profiles:create')
     
-    # If user has only one profile and it's not selected, select it automatically
-    if len(profiles) == 1 and 'profile_id' not in request.session:
+    # Get the current profile ID from session if it exists
+    current_profile_id = request.session.get('profile_id')
+    
+    # If we have a current profile in session, move it to the front of the list
+    if current_profile_id:
+        profiles = list(profiles)  # Convert to list for reordering
+        try:
+            # Find the current profile in the list
+            current_profile = next(p for p in profiles if str(p.id) == current_profile_id)
+            # Remove it from its current position and add to the front
+            profiles.remove(current_profile)
+            profiles.insert(0, current_profile)
+        except (StopIteration, ValueError):
+            # If the profile wasn't found, keep the original order
+            pass
+    
+    # If user has only one profile and not coming from manage, auto-select it
+    if len(profiles) == 1 and 'profile_id' not in request.session and not from_manage:
         profile = profiles[0]
+        
+        # Set the profile in the session
         request.session['profile_id'] = str(profile.id)
         request.session['profile_name'] = profile.name
         if profile.avatar:
             request.session['profile_avatar'] = profile.avatar.url
-        return redirect('movies:home')
+        
+        # Set as default profile if not already set
+        if not request.user.default_profile:
+            request.user.default_profile = profile
+            request.user.save()
+        
+        # Get the next URL from the request or session
+        next_url = request.GET.get('next') or request.session.pop('next', None)
+        
+        # If no specific next URL, go to home
+        if not next_url:
+            return redirect('movies:home')
+            
+        # Handle relative URLs
+        if next_url.startswith('/'):
+            from urllib.parse import urlparse, parse_qs, urlencode
+            parsed = urlparse(next_url)
+            path = parsed.path
+            
+            # Clean up query parameters
+            query = parse_qs(parsed.query)
+            if 'from_manage' in query:
+                del query['from_manage']
+            
+            # Rebuild the URL with cleaned query parameters
+            if query:
+                path = f"{path}?{urlencode(query, doseq=True)}"
+            
+            return redirect(path)
+            
+        return redirect(next_url)
     
-    # Allow users to access the profile list at any time
-    # Only redirect if they have no profiles at all
-    if not profiles.exists() and 'profile_id' in request.session:
-        # Clear all profile-related session data
-        for key in ['profile_id', 'profile_name', 'profile_avatar']:
-            if key in request.session:
-                del request.session[key]
-        messages.warning(request, 'Your selected profile no longer exists. Please create a new one.')
+    # If coming from manage profiles, set the flag in the session
+    if from_manage:
+        request.session['from_manage'] = True
     
-    # Ensure the selected profile still exists
+    # Check if we need to show a message about profile selection
+    show_selection_message = 'profile_id' not in request.session and not from_manage
+    
+    # Check for existing valid profile in session
     if 'profile_id' in request.session:
         try:
-            profile = profiles.get(id=request.session['profile_id'])
-            # Update session data if needed
-            request.session['profile_name'] = profile.name
+            profile = Profile.objects.get(id=request.session['profile_id'], user=request.user)
+            
+            # Update avatar in session if available
             if profile.avatar:
                 request.session['profile_avatar'] = profile.avatar.url
             elif 'profile_avatar' in request.session:
                 del request.session['profile_avatar']
+            
+            # If not coming from manage, redirect to home or next URL
+            if not from_manage:
+                next_url = request.GET.get('next') or 'movies:home'
+                return redirect(next_url)
+                
         except Profile.DoesNotExist:
             # Clear invalid profile data
             for key in ['profile_id', 'profile_name', 'profile_avatar']:
                 if key in request.session:
                     del request.session[key]
+            messages.warning(request, 'Your selected profile no longer exists. Please select a profile below.')
     
-    return render(request, 'profiles/profile_list.html', {
+    context = {
         'profiles': profiles,
-    })
+        'from_manage': from_manage,
+        'show_selection_message': show_selection_message,
+    }
+    
+    return render(request, 'profiles/profile_list.html', context)
 
 @login_required
 def select_profile(request, profile_id):
     """
     Select a profile to use for the current session.
+    Handles profile selection, session management, and redirection.
     """
     import logging
+    from urllib.parse import urlparse, parse_qs, urlencode
+    
     logger = logging.getLogger(__name__)
     
     try:
@@ -90,50 +162,60 @@ def select_profile(request, profile_id):
         # Debug logging
         logger.info(f"Selecting profile: {profile.name} (ID: {profile.id}) for user: {request.user.username}")
         
-        # Clear any existing profile data
-        if 'profile_id' in request.session:
-            del request.session['profile_id']
-        if 'profile_name' in request.session:
-            del request.session['profile_name']
-            
+        # Get the from_manage flag from request or session
+        from_manage = request.GET.get('from_manage') == '1' or request.session.get('from_manage', False)
+        
+        # Clear any existing profile data from session
+        for key in ['profile_id', 'profile_name', 'profile_avatar']:
+            if key in request.session:
+                del request.session[key]
+        
         # Set the new profile in the session
-        request.session['profile_id'] = str(profile.id)  # Ensure it's a string for consistency
+        request.session['profile_id'] = str(profile.id)  # Store as string for consistency
         request.session['profile_name'] = profile.name
+        
+        # Update avatar in session if available
         if profile.avatar:
             request.session['profile_avatar'] = profile.avatar.url
-        else:
-            request.session.pop('profile_avatar', None)
         
-        # Set session expiry to 30 days
-        request.session.set_expiry(60 * 60 * 24 * 30)
+        # Set as default profile if not already set
+        if not request.user.default_profile:
+            request.user.default_profile = profile
+            request.user.save()
         
         # Save the session explicitly
-        request.session.save()
+        request.session.modified = True
         
-        # Debug logging
-        logger.info(f"Session after setting profile: {dict(request.session)}")
+        # Get the next URL from the request or session
+        next_url = request.GET.get('next') or request.session.pop('next', None)
         
-        # Get the next URL, default to movies:home
-        next_url = request.GET.get('next', 'movies:home')
+        # If coming from manage profiles, go back to manage
+        if from_manage:
+            return redirect('profiles:manage')
         
-        # Basic security check to prevent open redirects
-        if not (next_url.startswith('/') or next_url.startswith('http')):
-            next_url = 'movies:home'
+        # If no specific next URL, go to home
+        if not next_url:
+            return redirect('movies:home')
         
-        # If it's not a safe URL, default to home
-        from urllib.parse import urlparse
-        try:
-            result = urlparse(next_url)
-            if result.scheme or result.netloc:
-                next_url = 'movies:home'
-        except:
-            next_url = 'movies:home'
+        # Handle relative URLs
+        if next_url.startswith('/'):
+            # Parse the URL to get path and query parameters
+            parsed = urlparse(next_url)
+            path = parsed.path
+            
+            # Parse and clean up query parameters
+            query = parse_qs(parsed.query)
+            if 'from_manage' in query:
+                del query['from_manage']
+            
+            # Rebuild the URL with cleaned query parameters
+            if query:
+                path = f"{path}?{urlencode(query, doseq=True)}"
+            
+            return redirect(path)
         
-        logger.info(f"Redirecting to: {next_url}")
-        
-        # Force a hard redirect to ensure the session is saved
-        response = redirect(next_url)
-        return response
+        # Handle named URLs
+        return redirect(next_url)
         
     except Exception as e:
         logger.error(f"Error selecting profile: {str(e)}", exc_info=True)
@@ -157,18 +239,18 @@ def my_list(request):
         messages.warning(request, 'Please select a profile to continue.')
         return redirect('profiles:profile_list')
     
-    # Get the watchlist with related movies to reduce database queries
-    my_list_items = MyList.objects.filter(profile=profile).select_related('movie')
+    # Get the watchlist with related content to reduce database queries
+    my_list_items = MyList.objects.filter(profile=profile).select_related('movie', 'series')
     
     # Group by content type (movie or series)
     movies = []
     series = []
     
     for item in my_list_items:
-        if item.movie.is_series:
-            series.append(item.movie)
+        if item.content_type == 'series':
+            series.append(item.series if item.series else item.movie)
         else:
-            movies.append(item.movie)
+            movies.append(item.movie if item.movie else item.series)
     
     # Check if the request is an AJAX request
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
@@ -197,24 +279,29 @@ def my_list(request):
 @login_required
 @require_POST
 def toggle_my_list(request, movie_id):
-    """Add or remove a movie from the user's watchlist."""
+    """Add or remove a movie or series from the user's watchlist."""
     if 'profile_id' not in request.session:
         return JsonResponse({'status': 'error', 'message': 'No profile selected'}, status=400)
     
     profile = get_object_or_404(Profile, id=request.session['profile_id'], user=request.user)
-    movie = get_object_or_404(Movie, id=movie_id)
+    content = get_object_or_404(Movie, id=movie_id)
     
-    my_list_item, created = MyList.objects.get_or_create(
+    # Check if the content is already in the user's list
+    my_list_item = MyList.objects.filter(
         profile=profile,
-        movie=movie,
-        defaults={'profile': profile, 'movie': movie}
-    )
+        **{'series' if content.is_series else 'movie': content}
+    ).first()
     
-    if not created:
+    if my_list_item:
         my_list_item.delete()
         return JsonResponse({'status': 'removed', 'message': 'Removed from My List'})
-    
-    return JsonResponse({'status': 'added', 'message': 'Added to My List'})
+    else:
+        # Create new entry
+        if content.is_series:
+            MyList.objects.create(profile=profile, series=content)
+        else:
+            MyList.objects.create(profile=profile, movie=content)
+        return JsonResponse({'status': 'added', 'message': 'Added to My List'})
 
 @login_required
 def delete_profile(request, profile_id):

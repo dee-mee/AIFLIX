@@ -34,9 +34,29 @@ def user_login(request):
         form = CustomAuthenticationForm(data=request.POST)
         if form.is_valid():
             user = form.get_user()
-            login(request, user)
-            next_url = request.POST.get('next') or 'movies:browse'
-            return redirect(next_url)
+            if user is not None:
+                login(request, user)
+                next_url = request.POST.get('next', 'movies:browse')
+                return redirect(next_url)
+            else:
+                # This should not happen if form is valid, but just in case
+                messages.error(request, 'Authentication failed. Please try again.')
+        else:
+            # Log form errors for debugging
+            print("Form errors:", form.errors)
+            for field, errors in form.errors.items():
+                for error in errors:
+                    print(f"{field}: {error}")
+            
+            # If form is invalid, show appropriate error message
+            if '__all__' in form.errors:
+                for error in form.errors['__all__']:
+                    if 'inactive' in error.lower():
+                        messages.error(request, 'This account is inactive.')
+                    else:
+                        messages.error(request, 'Invalid email or password. Please try again.')
+            else:
+                messages.error(request, 'Please correct the errors below.')
     else:
         form = CustomAuthenticationForm()
     

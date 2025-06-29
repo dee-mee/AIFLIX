@@ -1,0 +1,514 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if is_edit %}Edit{% else %}Create{% endif %} Profile{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h2 class="card-title text-center mb-4">
+                        {% if is_edit %}
+                            <i class="fas fa-user-edit me-2"></i>Edit Profile
+                        {% else %}
+                            <i class="fas fa-user-plus me-2"></i>Add Profile
+                        {% endif %}
+                    </h2>
+                    
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Form Fields -->
+                        <div class="mb-4">
+                            <label for="{{ form.name.id_for_label }}" class="form-label fw-bold">
+                                <i class="fas fa-signature me-2"></i>Profile Name
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                {{ form.name }}
+                            </div>
+                            {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.name.errors.0 }}
+                                </div>
+                            {% else %}
+                                <div class="form-text">This name will appear on your profile and in shared content.</div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Kids Profile Toggle -->
+                        <div class="mb-4 p-3 bg-light rounded-3">
+                            <div class="form-check form-switch">
+                                {{ form.is_kids_profile }}
+                                <label class="form-check-label fw-bold" for="{{ form.is_kids_profile.id_for_label }}">
+                                    <i class="fas fa-child me-2"></i>Kids Profile
+                                </label>
+                                <div class="form-text mt-1">
+                                    Kids profiles have content restrictions and a simplified interface.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Maturity Level (shown/hidden based on kids profile) -->
+                        <div class="mb-4" id="maturity-level-group">
+                            <label for="{{ form.maturity_level.id_for_label }}" class="form-label fw-bold">
+                                <i class="fas fa-film me-2"></i>Content Maturity Level
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-shield-alt"></i></span>
+                                {{ form.maturity_level }}
+                            </div>
+                            {% if form.maturity_level.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.maturity_level.errors.0 }}
+                                </div>
+                            {% else %}
+                                <div class="form-text" id="maturity-level-help">
+                                    Select the appropriate content maturity level for this profile.
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Avatar Selection -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-portrait me-2"></i>Choose an Avatar
+                            </label>
+                            
+                            <!-- Regular Avatars -->
+                            <div id="avatar-selection">
+                                <p class="text-muted mb-2">Regular Avatars</p>
+                                <div class="d-flex flex-wrap gap-3">
+                                    {% for choice in form.avatar %}
+                                        <div class="form-check">
+                                            {{ choice.tag }}
+                                            <label for="{{ choice.id_for_label }}" class="d-flex flex-column align-items-center">
+                                                <div class="avatar-option mb-1">
+                                                    <img src="{{ choice.choice_label }}" alt="Avatar" class="img-fluid rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
+                                                </div>
+                                                <span class="small">{{ choice.choice_label|slice:":-4"|cut:"avatars/"|title }}</span>
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <!-- Kids Avatars (initially hidden) -->
+                            <div id="kids-avatar-selection" class="d-none">
+                                <p class="text-muted mb-2">Kids Avatars</p>
+                                <div class="d-flex flex-wrap gap-3">
+                                    {% for choice in form.kids_avatar %}
+                                        <div class="form-check">
+                                            {{ choice.tag }}
+                                            <label for="{{ choice.id_for_label }}" class="d-flex flex-column align-items-center">
+                                                <div class="avatar-option mb-1">
+                                                    <img src="{{ choice.choice_label }}" alt="Kids Avatar" class="img-fluid rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
+                                                </div>
+                                                <span class="small">{{ choice.choice_label|slice:":-4"|cut:"kids_avatars/"|title }}</span>
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            {% if form.avatar.errors or form.kids_avatar.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.avatar.errors.0|default:form.kids_avatar.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Custom Avatar Upload -->
+                        <div class="mb-4">
+                            <label for="{{ form.avatar_upload.id_for_label }}" class="form-label fw-bold">
+                                <i class="fas fa-upload me-2"></i>{% if is_edit %}Change Profile Picture{% else %}Upload Custom Avatar{% endif %}
+                            </label>
+                            <div class="custom-file-upload">
+                                {{ form.avatar_upload }}
+                                <div class="upload-preview mt-2 d-none" id="avatar-preview">
+                                    <img src="#" alt="Preview" class="img-thumbnail" style="max-width: 150px; max-height: 150px;">
+                                </div>
+                            </div>
+                            {% if form.avatar_upload.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.avatar_upload.errors.0 }}
+                                </div>
+                            {% else %}
+                                <div class="form-text">
+                                    Upload a custom image (JPG, PNG, GIF, max 2MB). Square images work best.
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-5 pt-3 border-top">
+                            <a href="{% if from_manage %}{% url 'profiles:manage' %}{% else %}{% url 'profiles:profile_list' %}{% endif %}" 
+                               class="btn btn-outline-secondary me-md-2">
+                                <i class="fas fa-arrow-left me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if is_edit %}
+                                    <i class="fas fa-save me-1"></i>Update Profile
+                                {% else %}
+                                    <i class="fas fa-plus-circle me-1"></i>Create Profile
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const kidsProfileToggle = document.getElementById('{{ form.is_kids_profile.id_for_label }}');
+    const maturityLevelGroup = document.getElementById('maturity-level-group');
+    const maturityLevelHelp = document.getElementById('maturity-level-help');
+    const avatarSelection = document.getElementById('avatar-selection');
+    const kidsAvatarSelection = document.getElementById('kids-avatar-selection');
+    const avatarUpload = document.getElementById('{{ form.avatar_upload.id_for_label }}');
+    const avatarPreview = document.getElementById('avatar-preview');
+    const avatarPreviewImg = avatarPreview.querySelector('img');
+    
+    // Function to toggle between regular and kids avatars
+    function toggleAvatarOptions() {
+        if (kidsProfileToggle.checked) {
+            avatarSelection.classList.add('d-none');
+            kidsAvatarSelection.classList.remove('d-none');
+            maturityLevelHelp.textContent = 'Kids profiles are limited to age-appropriate content only.';
+        } else {
+            avatarSelection.classList.remove('d-none');
+            kidsAvatarSelection.classList.add('d-none');
+            maturityLevelHelp.textContent = 'Select the appropriate content maturity level for this profile.';
+        }
+    }
+    
+    // Handle avatar upload preview
+    function handleAvatarUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                avatarPreviewImg.src = e.target.result;
+                avatarPreview.classList.remove('d-none');
+                
+                // Clear any selected avatar
+                document.querySelectorAll('input[type="radio"][name^="avatar"]:checked').forEach(radio => {
+                    radio.checked = false;
+                    const label = radio.closest('.form-check');
+                    if (label) {
+                        label.classList.remove('active');
+                    }
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+    
+    // Clear avatar preview when a radio is selected
+    function handleAvatarSelect() {
+        if (this.checked) {
+            avatarPreview.classList.add('d-none');
+            avatarUpload.value = '';
+        }
+    }
+    
+    // Initial setup
+    toggleAvatarOptions();
+    
+    // Add event listeners
+    kidsProfileToggle.addEventListener('change', toggleAvatarOptions);
+    avatarUpload.addEventListener('change', handleAvatarUpload);
+    
+    // Add active class to selected avatar and handle selection
+    document.querySelectorAll('input[type="radio"][name^="avatar"]').forEach(radio => {
+        if (radio.checked) {
+            const label = radio.closest('.form-check');
+            if (label) {
+                label.classList.add('active');
+            }
+        }
+        
+        radio.addEventListener('change', handleAvatarSelect);
+        
+        radio.addEventListener('change', function() {
+            // Remove active class from all labels
+            document.querySelectorAll('.form-check').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Add active class to the selected label
+            const label = this.closest('.form-check');
+            if (label) {
+                label.classList.add('active');
+            }
+        });
+    });
+    
+    // Form validation
+    (function () {
+        'use strict'
+        
+        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+        var forms = document.querySelectorAll('.needs-validation')
+        
+        // Loop over them and prevent submission
+        Array.prototype.slice.call(forms)
+            .forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    
+                    form.classList.add('was-validated')
+                }, false)
+            })
+    })()
+});
+</script>
+
+<style>
+/* Custom styles for the form */
+.card {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+    color: #212529;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
+
+.form-label {
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    transition: all 0.2s ease-in-out;
+    font-size: 1rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+.input-group-text {
+    background-color: #f8f9fa;
+    border-right: none;
+}
+
+.input-group .form-control {
+    border-left: none;
+}
+
+.input-group .form-control:focus {
+    border-left: 1px solid #86b7fe;
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.form-switch .form-check-input:focus {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+.avatar-option {
+    border: 3px solid transparent;
+    border-radius: 50%;
+    transition: all 0.2s ease-in-out;
+    padding: 3px;
+    background: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+input[type="radio"]:checked + label .avatar-option {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.3);
+    transform: scale(1.05);
+}
+
+input[type="radio"]:focus + label .avatar-option {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.btn {
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn i {
+    font-size: 0.9em;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border: none;
+    box-shadow: 0 2px 5px rgba(13, 110, 253, 0.3);
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background-color: #0b5ed7;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-outline-secondary {
+    border-color: #dee2e6;
+    color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    color: #212529;
+}
+
+/* Custom file upload */
+.custom-file-upload {
+    display: block;
+    position: relative;
+    width: 100%;
+}
+
+.custom-file-upload input[type="file"] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.custom-file-upload .form-control[type="file"] {
+    padding: 10px;
+    border: 2px dashed #dee2e6;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    transition: all 0.2s ease-in-out;
+    position: relative;
+    overflow: hidden;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+}
+
+.custom-file-upload .form-control[type="file"]::before {
+    content: 'Choose file...';
+    color: #6c757d;
+    position: absolute;
+    left: 10px;
+    pointer-events: none;
+}
+
+.custom-file-upload .form-control[type="file"]:hover {
+    border-color: #86b7fe;
+    background-color: #f1f7ff;
+}
+
+.custom-file-upload .form-control[type="file"]:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+/* Form validation */
+.was-validated .form-control:valid,
+.form-control.is-valid {
+    border-color: #198754;
+    padding-right: calc(1.5em + 0.75rem);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.was-validated .form-control:invalid,
+.form-control.is-invalid {
+    border-color: #dc3545;
+    padding-right: calc(1.5em + 0.75rem);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.invalid-feedback {
+    color: #dc3545;
+    font-size: 0.875em;
+    margin-top: 0.25rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .card {
+        border-radius: 0;
+    }
+    
+    .avatar-option img {
+        width: 60px !important;
+        height: 60px !important;
+    }
+    
+    .d-md-flex {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .d-md-flex .btn {
+        width: 100%;
+        margin: 0;
+    }
+    
+    .btn {
+        padding: 0.75rem 1rem;
+    }
+}
+</style>
+{% endblock %}

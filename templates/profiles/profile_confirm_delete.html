@@ -1,0 +1,36 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Delete Profile - AIFLIX{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card bg-dark text-white">
+                <div class="card-header">
+                    <h2 class="h4 mb-0">Delete Profile</h2>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Are you sure you want to delete the profile <strong>{{ object.name }}</strong>?</p>
+                    <p class="text-muted">This action cannot be undone. All watch history and preferences for this profile will be permanently removed.</p>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <form method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash-alt me-2"></i>Delete Profile
+                            </button>
+                        </form>
+                        
+                        <a href="{% if from_manage %}{% url 'profiles:manage' %}{% else %}{% url 'profiles:profile_list' %}{% endif %}" 
+                           class="btn btn-outline-light">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

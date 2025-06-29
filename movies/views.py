@@ -410,6 +410,101 @@ def home(request):
     for i, movie in enumerate(featured_movies, 1):
         logger.info(f"  {i}. {getattr(movie, 'title', 'No title')} - Banner: {getattr(movie, 'banner_image', 'No banner')}")
     
+    # Debug authentication and session info
+    logger.info(f"\n=== AUTHENTICATION DEBUG ===")
+    logger.info(f"User authenticated: {request.user.is_authenticated}")
+    logger.info(f"User: {request.user}")
+    logger.info(f"Session keys: {list(request.session.keys())}")
+    logger.info(f"Profile in session: {request.session.get('profile_id')}")
+    logger.info("=== END AUTHENTICATION DEBUG ===\n")
+    
+    # Get continue watching - movies and episodes that are not completed
+    continue_watching = []
+    if request.user.is_authenticated and hasattr(request.user, 'profiles'):
+        try:
+            logger.info(f"\n=== DEBUG: Continue Watching Debug ===")
+            logger.info(f"User: {request.user}")
+            logger.info(f"Has profiles attribute: {hasattr(request.user, 'profiles')}")
+            
+            profiles = list(request.user.profiles.all())
+            logger.info(f"Found {len(profiles)} profiles: {profiles}")
+            
+            if not profiles:
+                logger.warning("No profiles found for user")
+                
+            profile = request.user.profiles.first()
+            if profile:
+                logger.info(f"Using profile: {profile.id} - {profile.name}")
+                
+                # Get movies that are in progress
+                in_progress_movies = WatchHistory.objects.filter(
+                    profile=profile,
+                    movie__isnull=False,
+                    progress__gt=0,
+                    progress__lt=90,
+                    completed=False
+                ).select_related('movie').order_by('-watched_at')
+                
+                movie_count = in_progress_movies.count()
+                logger.info(f"Found {movie_count} in-progress movies")
+                if movie_count > 0:
+                    for m in in_progress_movies:
+                        logger.info(f"  - Movie: {m.movie.title if m.movie else 'No movie'}, ID: {m.movie.id if m.movie else 'N/A'}, Progress: {m.progress}%, Watched: {m.watched_at}")
+                else:
+                    logger.info("  No in-progress movies found")
+                
+                # Get episodes that are in progress
+                in_progress_episodes = WatchHistory.objects.filter(
+                    profile=profile,
+                    episode__isnull=False,
+                    progress__gt=0,
+                    progress__lt=90,
+                    completed=False
+                ).select_related('episode', 'episode__season', 'episode__season__series').order_by('-watched_at')
+                
+                episode_count = in_progress_episodes.count()
+                logger.info(f"Found {episode_count} in-progress episodes")
+                if episode_count > 0:
+                    for e in in_progress_episodes:
+                        logger.info(f"  - Episode: {e.episode.title if e.episode else 'No episode'} "
+                                    f"(ID: {e.episode.id if e.episode else 'N/A'}) "
+                                    f"of {e.episode.season.series.title if e.episode and e.episode.season and e.episode.season.series else 'No show'} "
+                                    f"(Season {e.episode.season.season_number if e.episode and e.episode.season else 'N/A'}, "
+                                    f"Episode {e.episode.episode_number if e.episode else 'N/A'}), "
+                                    f"Progress: {e.progress}%, Watched: {e.watched_at}")
+                else:
+                    logger.info("  No in-progress episodes found")
+                
+                # Combine and sort by last watched
+                continue_watching = list(in_progress_movies) + list(in_progress_episodes)
+                continue_watching.sort(key=lambda x: x.watched_at, reverse=True)
+                continue_watching = continue_watching[:10]  # Limit to 10 items
+                
+                logger.info(f"\n=== Continue Watching Summary ===")
+                logger.info(f"Total items: {len(continue_watching)}")
+                
+                if not continue_watching:
+                    logger.info("No continue watching items to display")
+                else:
+                    for i, item in enumerate(continue_watching, 1):
+                        if hasattr(item, 'movie') and item.movie:
+                            logger.info(f"  {i}. [MOVIE] {item.movie.title} (ID: {item.movie.id}), Progress: {item.progress}%, Watched: {item.watched_at}")
+                        elif hasattr(item, 'episode') and item.episode:
+                            series_title = item.episode.season.series.title if item.episode.season and item.episode.season.series else 'Unknown Series'
+                            logger.info(f"  {i}. [EPISODE] {item.episode.title} (ID: {item.episode.id}) of {series_title}, "
+                                      f"S{item.episode.season.season_number:02d}E{item.episode.episode_number:02d}, "
+                                      f"Progress: {item.progress}%, Watched: {item.watched_at}")
+                
+                logger.info("=== End Continue Watching Debug ===\n")
+            else:
+                logger.warning("No profile found for user")
+        except Exception as e:
+            logger.error(f"Error fetching continue watching: {str(e)}", exc_info=True)
+    elif not request.user.is_authenticated:
+        logger.warning("User is not authenticated")
+    else:
+        logger.warning("User has no profiles attribute")
+    
     context = {
         'featured_movie': featured_movies[0] if featured_movies else None,
         'featured_movies': featured_movies,
@@ -418,6 +513,7 @@ def home(request):
         'top_rated': top_rated,
         'action_movies': action_movies,
         'genres': genres,
+        'continue_watching': continue_watching,
     }
     return render(request, 'movies/home.html', context)
 

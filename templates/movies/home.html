@@ -8,12 +8,12 @@
     /* Hero Section */
     .hero-section {
         position: relative;
-        height: calc(100vh - 70px);
-        min-height: 600px;
-        overflow: hidden;
+        height: 80vh;
+        min-height: 500px;
         margin: 0;
         padding-top: 70px; /* Account for fixed navbar */
         box-sizing: border-box;
+        margin-bottom: 2rem; /* Add some space below hero */
     }
     
     .hero-content {
@@ -826,6 +826,124 @@
         transform: translateY(0);
     }
     
+    /* Continue Watching Card Styles */
+    .continue-watching-card {
+        position: relative;
+        border-radius: 6px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        aspect-ratio: 16/9;
+        background: #2a2a2a;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateZ(0);
+    }
+    
+    .continue-watching-card:hover {
+        transform: scale(1.05);
+        z-index: 10;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+    
+    .continue-watching-card .progress-container {
+        position: relative;
+        width: 100%;
+        padding-top: 56.25%; /* 16:9 Aspect Ratio */
+        overflow: hidden;
+    }
+    
+    .continue-watching-card img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .continue-watching-card:hover img {
+        transform: scale(1.05);
+    }
+    
+    .continue-watching-card .card-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        z-index: 2;
+    }
+    
+    .continue-watching-card .progress-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.2);
+        z-index: 2;
+    }
+    
+    .continue-watching-card .progress {
+        height: 100%;
+        background: #e50914;
+        transition: width 0.3s ease;
+    }
+    
+    .continue-watching-card .card-info {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 60px 15px 15px;
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+        color: white;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+        z-index: 2;
+    }
+    
+    .continue-watching-card:hover .card-info {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    .continue-watching-card .card-info h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0 0 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .continue-watching-card .card-info p {
+        font-size: 13px;
+        margin: 0;
+        opacity: 0.9;
+    }
+    
+    .progress-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.2);
+        z-index: 2;
+    }
+    
+    .progress {
+        height: 100%;
+        background: #e50914;
+        transition: width 0.3s ease;
+    }
+    
     .card-badge {
         position: absolute;
         top: 15px;
@@ -1093,9 +1211,6 @@
 </div>
 
 <script>
-// Debug log to check if JavaScript is running
-console.log('Hero carousel script loaded');
-
 // Hero Carousel Functionality
 (function() {
     'use strict';
@@ -1116,9 +1231,6 @@ console.log('Hero carousel script loaded');
         var isTransitioning = false;
         var autoSlideInterval;
         
-        // Log slides found
-        console.log('Found', slideElements.length, 'slides');
-        
         // Initialize slides
         function initSlides() {
             slideElements.forEach(function(slide, index) {
@@ -1133,12 +1245,15 @@ console.log('Hero carousel script loaded');
         
         // Go to specific slide
         function goToSlide(index) {
-            if (isTransitioning) return;
+            if (isTransitioning || !slideElements.length) return;
             isTransitioning = true;
             
             // Get current and next slides
             var currentActive = carousel.querySelector('.hero-slide.active');
+            if (!currentActive) return;
+            
             var nextSlide = slideElements[index];
+            if (!nextSlide) return;
             
             // Update classes for transition
             currentActive.classList.remove('active');
@@ -1158,9 +1273,11 @@ console.log('Hero carousel script loaded');
             
             // Reset after transition
             setTimeout(function() {
-                currentActive.classList.remove('prev');
-                currentActive.style.transform = '';
-                nextSlide.style.transform = '';
+                if (currentActive && nextSlide) {
+                    currentActive.classList.remove('prev');
+                    currentActive.style.transform = '';
+                    nextSlide.style.transform = '';
+                }
                 isTransitioning = false;
             }, 700);
             
@@ -1182,81 +1299,53 @@ console.log('Hero carousel script loaded');
         
         // Auto slide function
         function startAutoSlide() {
-            autoSlideInterval = setInterval(function() {
-                var nextSlide = (currentSlide + 1) % slideElements.length;
-                goToSlide(nextSlide);
-            }, 7000);
+            if (autoSlideInterval) {
+                clearInterval(autoSlideInterval);
+            }
+            if (slideElements.length > 1) {
+                autoSlideInterval = setInterval(function() {
+                    var nextSlide = (currentSlide + 1) % slideElements.length;
+                    goToSlide(nextSlide);
+                }, 7000);
+            }
         }
         
         // Initialize the carousel
-        initSlides();
-        updateIndicators(0);
-        startAutoSlide();
-        
-        // Pause auto slide on hover
-        carousel.addEventListener('mouseenter', function() {
-            clearInterval(autoSlideInterval);
-        });
-        
-        // Resume auto slide when mouse leaves
-        carousel.addEventListener('mouseleave', startAutoSlide);
-        
-        // Navigation controls
-        var prevButton = carousel.querySelector('.carousel-control.prev');
-        var nextButton = carousel.querySelector('.carousel-control.next');
-        
-        prevButton.addEventListener('click', function() {
-            var prevSlide = (currentSlide - 1 + slideElements.length) % slideElements.length;
-            goToSlide(prevSlide);
-        });
-        
-        nextButton.addEventListener('click', function() {
-            var nextSlide = (currentSlide + 1) % slideElements.length;
-            goToSlide(nextSlide);
-        });
-        
-        // Touch event handling
-        var touchStartX = 0;
-        var touchEndX = 0;
-        
-        carousel.addEventListener('touchstart', function(e) {
-            touchStartX = e.changedTouches[0].screenX;
-        }, false);
-        
-        carousel.addEventListener('touchend', function(e) {
-            touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
-        }, false);
-        
-        }
-        
-        // Keyboard navigation
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'ArrowLeft') {
-                var prevSlide = (currentSlide - 1 + slideElements.length) % slideElements.length;
-                goToSlide(prevSlide);
-            } else if (e.key === 'ArrowRight') {
-                var nextSlide = (currentSlide + 1) % slideElements.length;
-                goToSlide(nextSlide);
+        if (slideElements.length > 0) {
+            initSlides();
+            updateIndicators(0);
+            startAutoSlide();
+            
+            // Pause auto slide on hover
+            carousel.addEventListener('mouseenter', function() {
+                if (autoSlideInterval) {
+                    clearInterval(autoSlideInterval);
+                }
+            });
+            
+            // Resume auto slide when mouse leaves
+            carousel.addEventListener('mouseleave', startAutoSlide);
+            
+            // Navigation controls
+            var prevButton = carousel.querySelector('.carousel-control.prev');
+            var nextButton = carousel.querySelector('.carousel-control.next');
+            
+            if (prevButton) {
+                prevButton.addEventListener('click', function() {
+                    var prevSlide = (currentSlide - 1 + slideElements.length) % slideElements.length;
+                    goToSlide(prevSlide);
+                });
             }
-        });
-        
-        // Clean up interval when leaving the page
-        window.addEventListener('beforeunload', function() {
-            clearInterval(autoSlideInterval);
-        });
-    }
-    
-    // Initialize the carousel when the DOM is fully loaded
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initCarousel);
-    } else {
-        initCarousel();
-    }
+            
+            if (nextButton) {
+                nextButton.addEventListener('click', function() {
+                    var nextSlide = (currentSlide + 1) % slideElements.length;
+                    goToSlide(nextSlide);
+                });
             }
             
             // Handle keyboard navigation
-            document.addEventListener('keydown', function(e) {
+            document.addEventListener('keydown', function handleKeyDown(e) {
                 if (e.key === 'ArrowLeft') {
                     var prevSlide = (currentSlide - 1 + slideElements.length) % slideElements.length;
                     goToSlide(prevSlide);
@@ -1274,20 +1363,6 @@ console.log('Hero carousel script loaded');
                 }
             });
             
-            // Pause auto-slide on hover and touch
-            carousel.addEventListener('mouseenter', function() {
-                clearInterval(autoSlideInterval);
-            });
-            
-            carousel.addEventListener('mouseleave', startAutoSlide);
-            
-            carousel.addEventListener('touchstart', function() {
-                clearInterval(autoSlideInterval);
-            });
-            carousel.addEventListener('touchend', function() {
-                startAutoSlide();
-            });
-            
             // Handle indicator clicks
             var indicatorsContainer = carousel.querySelector('.carousel-indicators');
             if (indicatorsContainer) {
@@ -1302,135 +1377,79 @@ console.log('Hero carousel script loaded');
                 });
             }
             
-            // Add touch support for mobile devices
-            if ('ontouchstart' in window) {
-                var touchStartX = 0;
-                var touchEndX = 0;
-                
-                carousel.addEventListener('touchstart', function(e) {
-                    touchStartX = e.changedTouches[0].screenX;
-                    clearInterval(autoSlideInterval);
-                }, { passive: true });
-                
-                carousel.addEventListener('touchend', function(e) {
-                    touchEndX = e.changedTouches[0].screenX;
-                    handleSwipe();
-                    startAutoSlide();
-                }, { passive: true });
-                
-                function handleSwipe() {
-                    var swipeThreshold = 50; // Minimum distance to consider it a swipe
+                    // Initialize touch support for mobile devices
+            var initTouchSupport = function() {
+                if ('ontouchstart' in window) {
+                    var touchStartX = 0;
+                    var touchEndX = 0;
                     
-                    if (touchEndX < touchStartX - swipeThreshold) {
-                        // Swipe left - go to next slide
-                        var nextSlide = (currentSlide + 1) % slideElements.length;
-                        goToSlide(nextSlide);
-                    } else if (touchEndX > touchStartX + swipeThreshold) {
-                        // Swipe right - go to previous slide
-                        var prevSlide = (currentSlide - 1 + slideElements.length) % slideElements.length;
-                        goToSlide(prevSlide);
-                    }
-                }
-            }
-            
-            // Add to My List functionality
-            window.addToMyList = function(movieId) {
-                // This function would typically make an AJAX call to add the movie to the user's list
-                // For now, we'll just show a notification
-                var toast = document.createElement('div');
-                toast.className = 'toast show';
-                toast.style.position = 'fixed';
-                toast.style.bottom = '20px';
-                toast.style.right = '20px';
-                toast.style.backgroundColor = '#e50914';
-                toast.style.color = 'white';
-                toast.style.padding = '15px 25px';
-                toast.style.borderRadius = '4px';
-                toast.style.zIndex = '9999';
-                toast.style.transition = 'opacity 0.3s ease-in-out';
-                toast.textContent = 'Movie added to My List!';
-                
-                if (document.body) {
-                    document.body.appendChild(toast);
-                    setTimeout(function() {
-                        toast.style.opacity = '0';
-                        setTimeout(function() {
-                            if (toast.parentNode) {
-                                toast.parentNode.removeChild(toast);
-                            }
-                        }, 300);
-                    }, 3000);
+                    var handleTouchStart = function(e) {
+                        if (autoSlideInterval) {
+                            clearInterval(autoSlideInterval);
+                        }
+                        touchStartX = e.changedTouches[0].screenX;
+                    };
+                    
+                    var handleTouchEnd = function(e) {
+                        touchEndX = e.changedTouches[0].screenX;
+                        var swipeThreshold = 50;
+                        
+                        if (touchEndX < touchStartX - swipeThreshold) {
+                            // Swipe left - go to next slide
+                            var nextSlide = (currentSlide + 1) % slideElements.length;
+                            goToSlide(nextSlide);
+                        } else if (touchEndX > touchStartX + swipeThreshold) {
+                            // Swipe right - go to previous slide
+                            var prevSlide = (currentSlide - 1 + slideElements.length) % slideElements.length;
+                            goToSlide(prevSlide);
+                        }
+                        
+                        startAutoSlide();
+                    };
+                    
+                    carousel.addEventListener('touchstart', handleTouchStart, { passive: true });
+                    carousel.addEventListener('touchend', handleTouchEnd, { passive: true });
                 }
             };
-                handleSwipe();
-                startAutoSlide();
-            }
             
-            function handleSwipe() {
-                const swipeThreshold = 50; // Minimum swipe distance in pixels
-                
-                if (touchEndX < touchStartX - swipeThreshold) {
-                    // Swipe left - go to next slide
-                    changeSlide(1);
-                } else if (touchEndX > touchStartX + swipeThreshold) {
-                    // Swipe right - go to previous slide
-                    changeSlide(-1);
-                }
-            }
+            // Initialize touch support
+            initTouchSupport();
             
-            // Add touch event listeners
-            carousel.addEventListener('touchstart', handleTouchStart, { passive: true });
-            carousel.addEventListener('touchend', handleTouchEnd, { passive: true });
-            
-            // Clean up touch event listeners
-            window.addEventListener('beforeunload', function() {
-                carousel.removeEventListener('touchstart', handleTouchStart);
-                carousel.removeEventListener('touchend', handleTouchEnd);
-            });
+            // Close the initCarousel function
+            return {
+                goToSlide: goToSlide,
+                nextSlide: nextSlide,
+                prevSlide: prevSlide
+            };
         }
         
-        // Reset transition after animation completes
-        setTimeout(function() {
-            if (carousel) {
-                carousel.style.transition = 'none';
-                // Reset transform to avoid potential layout issues
-                carousel.style.transform = 'translateX(0)';
-                
-                // Move the current slide to the correct position
-                var slidesArray = Array.from(slides);
-                var currentSlideEl = slidesArray[currentSlide];
-                if (currentSlideEl) {
-                    currentSlideEl.style.order = 0;
-                    slidesArray.forEach(function(slide, idx) {
-                        if (idx !== currentSlide) {
-                            slide.style.order = idx < currentSlide ? -1 : 1;
-                        }
-                    });
-                }
-            }
-            
-            // Show toast notification
+        // Add to My List functionality
+        window.addToMyList = function(movieId) {
+            // This function would typically make an AJAX call to add the movie to the user's list
+            // For now, we'll just show a notification
             var toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerHTML = '\
-                <div class="toast-body">\
-                    Movie added to My List!\
-                </div>';
-            document.body.appendChild(toast);
+            toast.className = 'toast show';
+            toast.style.position = 'fixed';
+            toast.style.bottom = '20px';
+            toast.style.right = '20px';
+            toast.style.backgroundColor = '#e50914';
+            toast.style.color = 'white';
+            toast.style.padding = '15px 25px';
+            toast.style.borderRadius = '4px';
+            toast.style.zIndex = '9999';
+            toast.style.transition = 'opacity 0.3s ease-in-out';
+            toast.textContent = 'Movie added to My List!';
             
-            // Remove the toast after 3 seconds
+            document.body.appendChild(toast);
             setTimeout(function() {
-                toast.classList.add('show');
+                toast.style.opacity = '0';
                 setTimeout(function() {
-                    toast.classList.remove('show');
-                    setTimeout(function() {
-                        if (toast.parentNode) {
-                            document.body.removeChild(toast);
-                        }
-                    }, 300);
-                }, 2700);
-            }, 0);
-        }, 3000);
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        };
     }
     
     // Initialize the carousel when the DOM is fully loaded
@@ -1439,8 +1458,72 @@ console.log('Hero carousel script loaded');
     } else {
         initCarousel();
     }
-})(); // End of IIFE
+})();
 </script>
+
+<!-- Continue Watching Section -->
+<div class="section">
+    <div class="section-header">
+        <h2 class="section-title">Continue Watching</h2>
+    </div>
+    {% if continue_watching %}
+    <div class="content-grid">
+        {% for item in continue_watching %}
+            {% if item.episode %}
+                <!-- TV Show Episode -->
+                <div class="continue-watching-card">
+                    <a href="{% url 'movies:watch_episode' pk=item.episode.season.movie.id episode_id=item.episode.id %}">
+                        <div class="progress-container">
+                            <img src="{{ item.episode.thumbnail.url|default:item.episode.season.movie.thumbnail.url }}" 
+                                 alt="{{ item.episode.title }}" 
+                                 loading="lazy">
+                            <div class="progress-bar">
+                                <div class="progress" style="width: {{ item.progress }}%;"></div>
+                            </div>
+                        </div>
+                        <div class="card-badge">
+                            S{{ item.episode.season.season_number|stringformat:"02d" }}E{{ item.episode.episode_number|stringformat:"02d" }}
+                        </div>
+                        <div class="card-info">
+                            <h3>{{ item.episode.title }}</h3>
+                            <p>{{ item.episode.season.movie.title }}</p>
+                        </div>
+                    </a>
+                </div>
+            {% else %}
+                <!-- Movie -->
+                <div class="continue-watching-card">
+                    <a href="{% url 'movies:watch_movie' pk=item.movie.id %}">
+                        <div class="progress-container">
+                            <img src="{{ item.movie.thumbnail.url }}" 
+                                 alt="{{ item.movie.title }}" 
+                                 loading="lazy">
+                            <div class="progress-bar">
+                                <div class="progress" style="width: {{ item.progress }}%;"></div>
+                            </div>
+                        </div>
+                        <div class="card-info">
+                            <h3>{{ item.movie.title }}</h3>
+                            {% if item.movie.release_date %}
+                                <p>{{ item.movie.release_date.year }}</p>
+                            {% endif %}
+                        </div>
+                    </a>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="fas fa-play-circle"></i>
+        </div>
+        <h3>Nothing in Continue Watching</h3>
+        <p>Start watching a movie or TV show to see it here.</p>
+        <a href="{% url 'movies:browse' %}" class="btn btn-primary">Browse Content</a>
+    </div>
+    {% endif %}
+</div>
 
 <!-- Trending Now on AIFLIX Section -->
 <div class="section">

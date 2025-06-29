@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 from .models import CustomUser
 
 class CustomUserCreationForm(UserCreationForm):
@@ -31,5 +31,26 @@ class UserProfileForm(forms.ModelForm):
         self.fields['username'].help_text = 'Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'
 
 class CustomAuthenticationForm(AuthenticationForm):
-    """Authentication form that uses email instead of username."""
+    """Authentication form that accepts both email and username."""
     username = forms.CharField(label='Email / Username')
+    
+    def clean(self):
+        username = self.cleaned_data.get('username')
+        password = self.cleaned_data.get('password')
+        
+        if username and password:
+            self.user_cache = authenticate(
+                self.request,
+                username=username,
+                password=password
+            )
+            
+            if self.user_cache is None:
+                raise forms.ValidationError(
+                    "Please enter a correct username/email and password. "
+                    "Note that both fields may be case-sensitive."
+                )
+            
+            self.confirm_login_allowed(self.user_cache)
+        
+        return self.cleaned_data
