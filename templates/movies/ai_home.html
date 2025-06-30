@@ -102,23 +102,7 @@
         letter-spacing: 0.5px;
     }
     
-    .trending-section {
-        margin: 4rem 0;
-    }
-    
-    .section-title {
-        font-size: 1.8rem;
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-        color: #fff;
-        display: flex;
-        align-items: center;
-    }
-    
-    .section-title i {
-        margin-right: 1rem;
-        color: #e50914;
-    }
+
     
     @media (max-width: 768px) {
         .ai-home-hero {
@@ -153,131 +137,124 @@
 </div>
 
 <div class="container">
-    <h2 class="section-title"><i class="fas fa-robot"></i> AI Content Categories</h2>
-    
-    <div class="ai-categories-grid">
-        <!-- AI-Generated Movies -->
-        <a href="{% url 'movies:ai_generated' %}" class="ai-category-card">
-            <div class="ai-badge">Popular</div>
-            <div class="ai-category-overlay">
-                <h3 class="ai-category-title">AI-Generated Movies</h3>
-                <p class="ai-category-count">{{ ai_generated_count }} titles</p>
+
+    <!-- AI Content Categories -->
+    <div class="section-container">
+
+        <div class="section-content">
+            <div class="ai-categories-grid">
+                <a href="{% url 'movies:ai_generated' %}" class="ai-category-card">
+                    <div class="ai-badge">Popular</div>
+                    <div class="ai-category-overlay">
+                        <h3 class="ai-category-title">AI-Generated Movies</h3>
+                        <p class="ai-category-count">{{ ai_generated_count }} titles</p>
+                    </div>
+                    <img src="{% static 'img/ai-generated.jpg' %}" alt="AI-Generated Movies" class="img-fluid">
+                </a>
+                <a href="{% url 'movies:ai_upscaled' %}" class="ai-category-card">
+                    <div class="ai-badge">4K</div>
+                    <div class="ai-category-overlay">
+                        <h3 class="ai-category-title">AI-Upscaled Classics</h3>
+                        <p class="ai-category-count">{{ ai_upscaled_count }} titles</p>
+                    </div>
+                    <img src="{% static 'img/ai-upscaled.jpg' %}" alt="AI-Upscaled Classics" class="img-fluid">
+                </a>
+                <a href="{% url 'movies:user_created' %}" class="ai-category-card">
+                    <div class="ai-badge">Community</div>
+                    <div class="ai-category-overlay">
+                        <h3 class="ai-category-title">User Creations</h3>
+                        <p class="ai-category-count">{{ user_created_count }} titles</p>
+                    </div>
+                    <img src="{% static 'img/user-created.jpg' %}" alt="User Creations" class="img-fluid">
+                </a>
+                <a href="{% url 'movies:ai_series' %}" class="ai-category-card">
+                    <div class="ai-badge">Binge</div>
+                    <div class="ai-category-overlay">
+                        <h3 class="ai-category-title">AI-Generated Series</h3>
+                        <p class="ai-category-count">{{ ai_series_count }} series</p>
+                    </div>
+                    <img src="{% static 'img/ai-series.jpg' %}" alt="AI-Generated Series" class="img-fluid">
+                </a>
             </div>
-            <img src="{% static 'img/ai-generated.jpg' %}" alt="AI-Generated Movies" class="img-fluid">
-        </a>
-        
-        <!-- AI-Upscaled Classics -->
-        <a href="{% url 'movies:ai_upscaled' %}" class="ai-category-card">
-            <div class="ai-badge">4K</div>
-            <div class="ai-category-overlay">
-                <h3 class="ai-category-title">AI-Upscaled Classics</h3>
-                <p class="ai-category-count">{{ ai_upscaled_count }} titles</p>
-            </div>
-            <img src="{% static 'img/ai-upscaled.jpg' %}" alt="AI-Upscaled Classics" class="img-fluid">
-        </a>
-        
-        <!-- User Creations -->
-        <a href="{% url 'movies:user_created' %}" class="ai-category-card">
-            <div class="ai-badge">Community</div>
-            <div class="ai-category-overlay">
-                <h3 class="ai-category-title">User Creations</h3>
-                <p class="ai-category-count">{{ user_created_count }} titles</p>
-            </div>
-            <img src="{% static 'img/user-created.jpg' %}" alt="User Creations" class="img-fluid">
-        </a>
-        
-        <!-- AI-Generated Series -->
-        <a href="{% url 'movies:ai_series' %}" class="ai-category-card">
-            <div class="ai-badge">Binge</div>
-            <div class="ai-category-overlay">
-                <h3 class="ai-category-title">AI-Generated Series</h3>
-                <p class="ai-category-count">{{ ai_series_count }} series</p>
-            </div>
-            <img src="{% static 'img/ai-series.jpg' %}" alt="AI-Generated Series" class="img-fluid">
-        </a>
-    </div>
-    
-    <!-- Trending AI Content -->
-    {% if trending_ai %}
-    <div class="trending-section">
-        <h2 class="section-title"><i class="fas fa-fire"></i> Trending AI Content</h2>
-        <div class="row">
-            {% for movie in trending_ai %}
-            <div class="col-6 col-md-4 col-lg-3 mb-4">
-                {% include 'movies/partials/movie_card.html' with movie=movie %}
-            </div>
-            {% endfor %}
         </div>
     </div>
-    {% endif %}
-    
+
     <!-- AI-Generated Movies Section -->
     {% if ai_generated %}
-    <div class="section-spacing">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="section-title"><i class="fas fa-film"></i> AI-Generated Movies</h2>
-            <a href="{% url 'movies:ai_generated' %}" class="btn btn-sm btn-outline-light">View All</a>
-        </div>
-        <div class="row">
-            {% for movie in ai_generated %}
-            <div class="col-6 col-md-4 col-lg-3 mb-4">
-                {% include 'movies/partials/movie_card.html' with movie=movie %}
+    <div class="section-container">
+
+        <div class="section-content">
+            <div class="d-flex justify-content-end mb-3">
+                <a href="{% url 'movies:ai_generated' %}" class="btn btn-sm btn-outline-light">View All</a>
             </div>
-            {% endfor %}
+            <div class="row">
+                {% for movie in ai_generated %}
+                <div class="col-md-2">
+                    {% include 'movies/partials/movie_card.html' with movie=movie %}
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
     {% endif %}
     
     <!-- AI-Upscaled Classics Section -->
     {% if ai_upscaled %}
-    <div class="section-spacing">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="section-title"><i class="fas fa-star"></i> AI-Upscaled Classics</h2>
-            <a href="{% url 'movies:ai_upscaled' %}" class="btn btn-sm btn-outline-light">View All</a>
-        </div>
-        <div class="row">
-            {% for movie in ai_upscaled %}
-            <div class="col-6 col-md-4 col-lg-3 mb-4">
-                {% include 'movies/partials/movie_card.html' with movie=movie %}
+    <div class="section-container">
+
+        <div class="section-content">
+            <div class="d-flex justify-content-end mb-3">
+                <a href="{% url 'movies:ai_upscaled' %}" class="btn btn-sm btn-outline-light">View All</a>
             </div>
-            {% endfor %}
+            <div class="row">
+                {% for movie in ai_upscaled %}
+                <div class="col-md-2">
+                    {% include 'movies/partials/movie_card.html' with movie=movie %}
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
     {% endif %}
     
     <!-- User Creations Section -->
     {% if user_creations %}
-    <div class="section-spacing">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="section-title"><i class="fas fa-users"></i> User Creations</h2>
-            <a href="{% url 'movies:user_created' %}" class="btn btn-sm btn-outline-light">View All</a>
-        </div>
-        <div class="row">
-            {% for movie in user_creations %}
-            <div class="col-6 col-md-4 col-lg-3 mb-4">
-                {% include 'movies/partials/movie_card.html' with movie=movie %}
+    <div class="section-container">
+
+        <div class="section-content">
+            <div class="d-flex justify-content-end mb-3">
+                <a href="{% url 'movies:user_created' %}" class="btn btn-sm btn-outline-light">View All</a>
             </div>
-            {% endfor %}
+            <div class="row">
+                {% for movie in user_creations %}
+                <div class="col-md-2">
+                    {% include 'movies/partials/movie_card.html' with movie=movie %}
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
     {% endif %}
     
     <!-- AI-Generated Series Section -->
     {% if ai_series %}
-    <div class="section-spacing">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="section-title"><i class="fas fa-tv"></i> AI-Generated Series</h2>
-            <a href="{% url 'movies:ai_series' %}" class="btn btn-sm btn-outline-light">View All</a>
-        </div>
-        <div class="row">
-            {% for series in ai_series %}
-            <div class="col-6 col-md-4 col-lg-3 mb-4">
-                {% include 'movies/partials/movie_card.html' with movie=series %}
+    <div class="section-container">
+
+        <div class="section-content">
+            <div class="d-flex justify-content-end mb-3">
+                <a href="{% url 'movies:ai_series' %}" class="btn btn-sm btn-outline-light">View All</a>
             </div>
-            {% endfor %}
+            <div class="row">
+                {% for series in ai_series %}
+                <div class="col-md-2">
+                    {% include 'movies/partials/movie_card.html' with movie=series %}
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
     {% endif %}
+
 </div>
 {% endblock %}
 

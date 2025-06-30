@@ -1,3 +1,212 @@
+/* AI Content Page Layout */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+.section-container {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 2.5rem;
+    align-items: flex-start;
+    position: relative;
+    overflow: hidden; /* New stacking context for sticky */
+    padding: 2rem 0;
+    margin-bottom: 2.5rem; /* More space between sections */
+}
+
+.section-container:first-child {
+    margin-top: 1rem;
+}
+
+
+
+.category-header {
+    padding: 4rem 0 3rem;
+    background: linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.6)), 
+                url('{% static "img/ai-hero-bg.jpg" %}') no-repeat center center/cover;
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid #333;
+    position: relative;
+    overflow: hidden;
+}
+
+.category-header::before {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background: linear-gradient(0deg, #141414 0%, transparent 100%);
+    z-index: 1;
+}
+
+.section-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+    white-space: nowrap;
+    min-width: 180px;
+    line-height: 1.3;
+    align-self: start;
+    position: sticky;
+    top: 100px;
+    z-index: 2;
+    background: #141414;
+    padding: 0.5rem 0;
+    border-radius: 6px;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 60px;
+    height: 3px;
+    background: #e50914;
+}
+
+.section-title i {
+    margin-right: 10px;
+    color: #e50914;
+}
+
+.section-content {
+    flex: 1;
+    padding-top: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .section-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin: 2.5rem 0;
+    }
+    
+    .section-title {
+        position: static;
+        font-size: 1.5rem;
+        padding: 0.5rem 0;
+        margin: 0 0 0.75rem 0;
+        border-bottom: 2px solid #333;
+    }
+    
+    .section-title::after {
+        display: none;
+    }
+    
+    .section-content {
+        width: 100%;
+    }
+}
+
+/* Grid adjustments */
+.row {
+    margin: 0 -0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.col-md-2 {
+    padding: 0 0.5rem;
+    margin-bottom: 1rem;
+    width: 20%;
+}
+
+/* View All button */
+.btn-outline-light {
+    border-color: #666;
+    color: #fff;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.75rem;
+}
+
+.btn-outline-light:hover {
+    background-color: #e50914;
+    border-color: #e50914;
+}
+
+.section-spacing {
+    margin: 3rem 0;
+}
+
+/* Grid Layouts */
+.ai-categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+    margin: 2rem 0 4rem;
+    padding: 0 1rem;
+}
+
+.content-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1.25rem;
+    margin: 1.5rem 0 3rem;
+    padding: 0 0.5rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1200px) {
+    .container {
+        max-width: 100%;
+        padding: 0 2rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .ai-categories-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    }
+    
+    .content-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 1.5rem;
+    }
+    
+    .ai-categories-grid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .content-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .container {
+        padding: 0 1rem;
+    }
+    
+    .ai-categories-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.25rem;
+    }
+    
+    .content-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 0.75rem;
+    }
+    
+    .section-title {
+        font-size: 1.75rem;
+        margin: 1.5rem 0 1.25rem;
+    }
+}
+
 /* AI Content Categories */
 .ai-category-card {
     position: relative;
