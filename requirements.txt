@@ -22,9 +22,9 @@ flake8
 isort
 
 # Frontend
-libsass
-crispy_forms
-crispy_bootstrap5
+libsass==0.23.0
+crispy_forms==2.0.0
+crispy_bootstrap5==2.0.0
 
 gunicorn
 dj-database-url
