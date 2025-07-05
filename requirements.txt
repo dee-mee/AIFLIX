@@ -23,3 +23,8 @@ isort==5.13.2
 
 # Frontend
 libsass==0.22.0
+
+gunicorn 
+psycopg2-binary 
+dj-database-url 
+python-decouple

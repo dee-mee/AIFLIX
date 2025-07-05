@@ -1,0 +1,204 @@
+/* Subtitle Styling */
+::cue {
+    background-color: transparent;
+    color: #fff;
+    text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.9);
+    font-size: 1.2em;
+    line-height: 1.4;
+    font-family: Arial, sans-serif;
+}
+
+::cue(.title) {
+    font-weight: bold;
+}
+
+/* Subtitle Controls */
+.subtitle-control {
+    position: relative;
+    display: inline-block;
+    margin-left: 10px;
+}
+
+.subtitle-control button {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.subtitle-control button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.subtitle-menu {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(20, 20, 20, 0.95);
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 5px 0;
+    min-width: 150px;
+    z-index: 1000;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    margin-bottom: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.subtitle-menu.show {
+    display: block;
+}
+
+.subtitle-option {
+    padding: 8px 15px;
+    color: #e5e5e5;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.2s;
+}
+
+.subtitle-option:hover, .subtitle-option.active {
+    background-color: #333;
+    color: #fff;
+}
+
+/* Video Player Controls */
+.video-controls {
+    position: relative;
+    width: 100%;
+    margin-top: 10px;
+}
+
+/* Feedback Message */
+.video-feedback {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    z-index: 1000;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    opacity: 0;
+}
+
+/* Help Button */
+.help-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.help-button:hover {
+    background-color: #e50914;
+    transform: scale(1.1);
+}
+
+/* Shortcut Help Dialog */
+.shortcut-help-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #141414;
+    color: white;
+    padding: 25px;
+    border-radius: 8px;
+    z-index: 1001;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    border: 1px solid #333;
+}
+
+.shortcut-help-dialog h3 {
+    margin-top: 0;
+    color: #e50914;
+    font-size: 1.5em;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+}
+
+.shortcut-help-dialog ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+}
+
+.shortcut-help-dialog li {
+    padding: 8px 0;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #222;
+}
+
+.shortcut-help-dialog kbd {
+    background-color: #333;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.9em;
+    border: 1px solid #555;
+    box-shadow: 0 2px 0 #000;
+}
+
+.shortcut-help-dialog .close-help {
+    background-color: #e50914;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%;
+    transition: background-color 0.2s;
+}
+
+.shortcut-help-dialog .close-help:hover {
+    background-color: #f40612;
+}
+
+/* Video Player Focus Styles */
+video:focus {
+    outline: 2px solid #e50914;
+    outline-offset: 2px;
+}
+
+/* Hide native controls when using custom controls */
+.video-player {
+    width: 100%;
+}
+
+.video-player::-webkit-media-controls {
+    display: none !important;
+}

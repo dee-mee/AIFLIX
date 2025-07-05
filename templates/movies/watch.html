@@ -131,11 +131,23 @@
                 {% elif current_episode.video_url %}
                     <source src="{{ current_episode.video_url }}" type="video/mp4">
                 {% endif %}
+                {% if current_episode.subtitles.all %}
+                    {% for sub in current_episode.subtitles.all %}
+                        <track kind="subtitles" src="{{ sub.file.url }}" srclang="{{ sub.language_code }}" 
+                               label="{{ sub.get_language_display }}" {% if forloop.first %}default{% endif %}>
+                    {% endfor %}
+                {% endif %}
             {% else %}
                 {% if movie.video_file %}
                     <source src="{{ movie.video_file.url }}" type="video/mp4">
                 {% elif movie.video_url %}
                     <source src="{{ movie.video_url }}" type="video/mp4">
+                {% endif %}
+                {% if movie.subtitles.all %}
+                    {% for sub in movie.subtitles.all %}
+                        <track kind="subtitles" src="{{ sub.file.url }}" srclang="{{ sub.language_code }}" 
+                               label="{{ sub.get_language_display }}" {% if forloop.first %}default{% endif %}>
+                    {% endfor %}
                 {% endif %}
             {% endif %}
             Your browser does not support the video tag.
@@ -157,6 +169,31 @@
                             <i class="fas fa-volume-up"></i>
                         </button>
                         <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="1" style="width: 80px;">
+                    </div>
+                    <div class="subtitle-control ms-3">
+                        <button id="subtitleBtn" title="Subtitles (C)">
+                            <i class="fas fa-closed-captioning"></i>
+                        </button>
+                        <div class="subtitle-menu" id="subtitleMenu">
+                            <div class="subtitle-option" data-lang="off">Off</div>
+                            {% if current_episode %}
+                                {% if current_episode.subtitles.all %}
+                                    {% for sub in current_episode.subtitles.all %}
+                                        <div class="subtitle-option" data-lang="{{ sub.language_code }}">
+                                            {{ sub.get_language_display }}
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                            {% else %}
+                                {% if movie.subtitles.all %}
+                                    {% for sub in movie.subtitles.all %}
+                                        <div class="subtitle-option" data-lang="{{ sub.language_code }}">
+                                            {{ sub.get_language_display }}
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endif %}
+                        </div>
                     </div>
                     <div class="time-display">
                         <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
