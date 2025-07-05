@@ -1,1 +1,1 @@
-web: gunicorn AIFLIX.wsgi:application --log-file -
+web: pip install django-crispy-forms crispy-bootstrap5 && gunicorn aiflix.wsgi:application --log-file -

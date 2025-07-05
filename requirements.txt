@@ -23,8 +23,6 @@ isort
 
 # Frontend
 libsass==0.23.0
-crispy_forms
-crispy_bootstrap5
 
 gunicorn
 dj-database-url
