@@ -1,4 +1,4 @@
-# Python
+# Django
 __pycache__/
 *.py[cod]
 *$py.class
@@ -16,30 +16,12 @@ parts/
 sdist/
 var/
 wheels/
-share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
-
-# Django
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-media/
-staticfiles/
-
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 
 # Virtual Environment
 venv/
-env/
 ENV/
 
 # IDE
@@ -47,41 +29,26 @@ ENV/
 .vscode/
 *.swp
 *.swo
-*~
-.DS_Store
-
-# Node
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Coverage
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
-
-# Translations
-*.mo
-*.pot
 
 # Database
-*.sqlite3
+db.sqlite3
 
-# Media and static files
+# Local development settings
+.env
+.env.local
+
+# Static and Media Files
+/staticfiles/
 /media/
-/static/
 
-# Local development
+# Logs
+*.log
+
+# OS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db

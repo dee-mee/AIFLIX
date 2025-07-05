@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Collect static files
+echo "Collecting static files..."
+python manage.py collectstatic --noinput
+
+# Apply database migrations
+echo "Applying database migrations..."
+python manage.py migrate
+
+# Create superuser if needed
+if [ "$CREATE_SUPERUSER" = "true" ]; then
+    echo "Creating superuser..."
+    python manage.py createsuperuser --noinput \
+        --email="$SUPERUSER_EMAIL" \
+        --username="$SUPERUSER_USERNAME"
+fi
+
+# Clear cache
+echo "Clearing cache..."
+python manage.py clear_cache
+
+# Warm up cache
+echo "Warming up cache..."
+python manage.py warmup_cache

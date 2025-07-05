@@ -49,6 +49,57 @@ AIFLIX is a feature-rich streaming service that leverages artificial intelligenc
 
 ## 🚀 Getting Started
 
+### Local Development
+
+[Previous content remains unchanged...]
+
+## 🚀 Deployment to Render
+
+### 1. Create a Render Account
+- Sign up at https://render.com/
+- Connect your GitHub account
+
+### 2. Prepare Your Repository
+- Ensure your repository contains:
+  - `requirements.txt` with production dependencies
+  - `Procfile` for web process
+  - `runtime.txt` specifying Python version
+  - `.env` file with production settings
+  - `post-deploy` script for deployment tasks
+
+### 3. Environment Variables
+Set these environment variables in Render:
+
+```bash
+# Required
+SECRET_KEY=your-secret-key-here
+DEBUG=False
+ALLOWED_HOSTS=*
+
+# Database
+DATABASE_URL=postgres://user:password@host:port/dbname
+
+# Optional
+CREATE_SUPERUSER=true
+SUPERUSER_EMAIL=admin@example.com
+SUPERUSER_USERNAME=admin
+```
+
+### 4. Deploy to Render
+1. Go to https://dashboard.render.com/
+2. Click "New +" -> "Web Service"
+3. Choose your repository
+4. Select the main branch
+5. Set environment variables
+6. Click "Create Web Service"
+
+### 5. Post-Deployment
+After deployment, Render will automatically:
+- Collect static files
+- Apply database migrations
+- Create superuser (if configured)
+- Warm up cache
+
 ### Prerequisites
 - Python 3.8+
 
