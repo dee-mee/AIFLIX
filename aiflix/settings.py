@@ -13,8 +13,38 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-development-key-chang
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
+ALLOWED_HOSTS = [
+    "aiflix-i80r.onrender.com",  # your live domain
+    "localhost",  # for local testing
+    "127.0.0.1"
+]
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
+# Error logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
 
 # Application definition
 INSTALLED_APPS = [
@@ -45,14 +75,25 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# Only enable LoginRequiredMiddleware in production
+if not DEBUG:
+    MIDDLEWARE += [
+        'aiflix.middleware.LoginRequiredMiddleware',
+        'profiles.middleware.ProfileMiddleware',
+    ]
+
 # CORS settings
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='', cast=lambda v: [s.strip() for s in v.split(',')])
 CORS_ALLOW_CREDENTIALS = True
 
-# Only enable LoginRequiredMiddleware in production
-if not DEBUG:
-    MIDDLEWARE.insert(8, 'aiflix.middleware.LoginRequiredMiddleware')
-    MIDDLEWARE.insert(9, 'profiles.middleware.ProfileMiddleware')
+# Security settings
+SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=bool)
+CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=True, cast=bool)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 
 ROOT_URLCONF = 'aiflix.urls'
 
