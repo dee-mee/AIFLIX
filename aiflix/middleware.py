@@ -11,15 +11,16 @@ class LoginRequiredMiddleware:
         self.get_response = get_response
         # Public URLs that don't require authentication
         self.public_urls = [
-            reverse('landing'),
-            reverse('accounts:login'),
-            reverse('accounts:register'),
-            reverse('accounts:password_reset'),
-            reverse('accounts:password_reset_done'),
-            reverse('profiles:profile_list'),
+            '/',  # Landing page
+            '/accounts/login/',
+            '/accounts/register/',
+            '/accounts/password_reset/',
+            '/accounts/password_reset/done/',
+            '/profiles/profile_list/',
             '/profiles/select/',  # Allow access to profile selection
             '/static/',
             '/media/',
+            '/favicon.ico',  # Add favicon explicitly
         ]
         if settings.DEBUG:
             self.public_urls.extend([
