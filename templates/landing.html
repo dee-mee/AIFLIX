@@ -30,10 +30,126 @@
 {% endblock %}
 
 {% block content %}
+    <div class="container-fluid">
+        <!-- Hero Section -->
+        <div class="hero-section text-center">
+            <h1>Welcome to AIFLIX</h1>
+            <p class="lead">Unlimited movies, TV shows, and more.</p>
+            <a href="{% url 'accounts:login' %}" class="btn btn-primary btn-lg">Sign In</a>
+            <a href="{% url 'accounts:register' %}" class="btn btn-outline-light btn-lg">Sign Up</a>
+        </div>
+
+        <!-- Trending Movies Section -->
+        <div class="trending-section">
+            <h2>Trending Movies</h2>
+            <div class="row">
+                {% for movie in trending_movies %}
+                <div class="col-md-3 mb-4">
+                    <div class="movie-card">
+                        {% if movie.poster_url %}
+                        <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="movie-poster">
+                        {% else %}
+                        {% if placeholder_poster %}
+                        <img src="{{ placeholder_poster }}" alt="{{ movie.title }}" class="movie-poster">
+                        {% else %}
+                        <div class="placeholder-poster">
+                            <i class="fas fa-film"></i>
+                        </div>
+                        {% endif %}
+                        {% endif %}
+                        <h3>{{ movie.title }}</h3>
+                    </div>
+                </div>
+                {% empty %}
+                <p>No trending movies available.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* Navbar Styling */
+    .hero-section {
+        padding: 100px 0;
+        background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url("{% static 'img/hero-bg.jpg' %}") center/cover;
+        color: white;
+    }
+    
+    .movie-card {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .movie-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .movie-poster {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        border-radius: 5px;
+    }
+    
+    .placeholder-poster {
+        width: 100%;
+        height: 300px;
+        background: #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 5px;
+    }
+    
+    .placeholder-poster i {
+        font-size: 50px;
+        color: #333;
+    }
+    
+    .trending-section {
+        padding: 50px 0;
+    }
+    
+    .trending-section h2 {
+        margin-bottom: 30px;
+        color: #333;
+    }
+    
+    .landing-navbar {
+        background: rgba(0,0,0,0.95) !important;
+        backdrop-filter: blur(10px);
+    }
+    
+    .landing-navbar .navbar-brand h1 {
+        color: white !important;
+        margin: 0;
+        font-size: 2rem;
+    }
+    
+    .landing-navbar .btn {
+        padding: 10px 20px;
+        font-weight: 500;
+    }
+    
+    .landing-navbar .btn-outline-light {
+        border-width: 2px;
+    }
+    
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 80px 0 40px;
+        }
+        
+        .movie-card {
+            margin-bottom: 20px;
+        }
+    }
+</style>
+{% endblock %}    /* Navbar Styling */
     .landing-navbar {
         transition: all 0.3s ease;
         padding: 1rem 0;
