@@ -1,17 +1,18 @@
 from django.shortcuts import render
-from django.views.generic import TemplateView
+from django.views import View
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Count, Q
 from django.templatetags.static import static
 from .models import Movie, Genre
 
-class LandingPageView(TemplateView):
+class LandingPageView(View):
     """Landing page view that serves as the new homepage."""
-    template_name = 'landing.html'
     
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+    def get(self, request, *args, **kwargs):
+        context = {
+            'title': 'AIFLIX - Unlimited Movies & TV Shows'
+        }
         
         # Get trending movies (using is_trending flag)
         trending_movies = Movie.objects.filter(
