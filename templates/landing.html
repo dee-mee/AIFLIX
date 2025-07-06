@@ -49,13 +49,9 @@
                         {% if movie.poster_url %}
                         <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="movie-poster">
                         {% else %}
-                        {% if placeholder_poster %}
-                        <img src="{{ placeholder_poster }}" alt="{{ movie.title }}" class="movie-poster">
-                        {% else %}
                         <div class="placeholder-poster">
                             <i class="fas fa-film"></i>
                         </div>
-                        {% endif %}
                         {% endif %}
                         <h3>{{ movie.title }}</h3>
                     </div>

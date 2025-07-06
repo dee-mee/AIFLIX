@@ -10,16 +10,9 @@ class LandingPageView(View):
     """Landing page view that serves as the new homepage."""
     
     def get(self, request, *args, **kwargs):
-        try:
-            context = {
-                'title': 'AIFLIX - Unlimited Movies & TV Shows',
-                'placeholder_poster': static('img/placeholder-poster.jpg')
-            }
-        except ValueError:
-            context = {
-                'title': 'AIFLIX - Unlimited Movies & TV Shows',
-                'placeholder_poster': ''
-            }
+        context = {
+            'title': 'AIFLIX - Unlimited Movies & TV Shows'
+        }
         
         # Get trending movies (using is_trending flag)
         trending_movies = Movie.objects.filter(
