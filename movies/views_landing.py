@@ -33,13 +33,12 @@ class LandingPageView(View):
         # Get all genres for the browse section
         genres = Genre.objects.all()[:10]
         
-        context.update({
+        return render(request, 'landing.html', {
             'trending_movies': trending_movies,
             'featured_movie': featured_movie,
             'genres': genres,
             'hide_navbar': True,  # Hide default navbar
         })
-        return context
 
 def custom_404_view(request, exception):
     """Custom 404 error page."""
