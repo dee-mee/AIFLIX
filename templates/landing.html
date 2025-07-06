@@ -106,18 +106,10 @@
                         <img src="{{ featured_movie.poster.url }}" alt="{{ featured_movie.title }}">
                     {% else %}
                         <i class="fas fa-film"></i>
-                    {% endif %}
-                </div>
-                <div class="movie-info">
-                    <h3 class="movie-title">{{ featured_movie.title }}</h3>
-                    <p class="movie-genres">{% for genre in featured_movie.genres.all %}{{ genre.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
-                    <p class="movie-description">{{ featured_movie.description }}</p>
-                </div>
-            {% endif %}
         </div>
     </div>
 </section>
-{% endblock %}
+{% endblock content %}
 
 {% block extra_css %}
 <style>
