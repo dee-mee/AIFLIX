@@ -33,7 +33,7 @@ class LoginRequiredMiddleware:
             return self.get_response(request)
             
         # Allow access to public URLs
-        if any(request.path.startswith(url) for url in self.public_urls):
+        if any(request.path == url or request.path.startswith(url) for url in self.public_urls):
             return self.get_response(request)
             
         # Allow authenticated users
