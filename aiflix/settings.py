@@ -111,7 +111,7 @@ TEMPLATES = [
                 'profiles.context_processors.profile_context',
             ],
             'libraries': {
-                'active_link': 'aiflix.templatetags.active_link',  # Use aiflix's version
+                'active_link': 'movies.templatetags.active_link',
             },
         },
     },
