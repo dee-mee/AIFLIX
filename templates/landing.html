@@ -239,29 +239,56 @@
         background-color: rgba(255, 255, 255, 0.1);
     }
     
-    /* Hero Section */
-    .hero {
-        position: relative;
-        min-height: 100vh;
-        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .hero-image {
-        position: relative;
-        width: 100%;
-        height: 100%;
-    }
-
-    .hero-image i {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 5rem;
-        color: #6c757d;
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+        .hero-content {
+            padding: 1.5rem;
+            margin-top: 4rem;
+        }
+        
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+        }
+        
+        .hero-description {
+            font-size: 1rem;
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+        }
+        
+        .movie-grid {
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 1rem;
+        }
+        
+        .movie-poster {
+            height: 200px;
+        }
+        
+        .movie-title {
+            font-size: 1rem;
+        }
+        
+        .features-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        .cta-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .btn {
+            width: 100%;
+            max-width: 300px;
+        }
     }
 </style>
 {% endblock %}
@@ -277,10 +304,18 @@
             navbar.classList.remove('scrolled');
         }
     });
+    
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
 </script>
 {% endblock %}
-        text-align: center;
-        color: white;
         padding: 0 5%;
         margin: 0;
         box-sizing: border-box;
