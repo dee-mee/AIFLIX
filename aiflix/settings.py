@@ -69,6 +69,9 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'profiles.context_processors.profile_context',
             ],
+            'libraries': {
+                'active_link': 'aiflix.templatetags.active_link',  # Use aiflix's version
+            },
         },
     },
 ]
