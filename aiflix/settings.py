@@ -41,11 +41,18 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'aiflix.middleware.LoginRequiredMiddleware',  # Custom middleware for authentication
-    'profiles.middleware.ProfileMiddleware',  # Profile selection and validation
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# CORS settings
+CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='', cast=lambda v: [s.strip() for s in v.split(',')])
+CORS_ALLOW_CREDENTIALS = True
+
+# Only enable LoginRequiredMiddleware in production
+if not DEBUG:
+    MIDDLEWARE.insert(8, 'aiflix.middleware.LoginRequiredMiddleware')
+    MIDDLEWARE.insert(9, 'profiles.middleware.ProfileMiddleware')
 
 ROOT_URLCONF = 'aiflix.urls'
 
