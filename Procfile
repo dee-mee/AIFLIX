@@ -1,1 +1,1 @@
-web: poetry install && gunicorn aiflix.wsgi:application --log-file -
+web: pip install -r requirements.txt && gunicorn aiflix.wsgi:application --log-file -
