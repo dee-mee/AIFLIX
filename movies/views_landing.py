@@ -37,7 +37,6 @@ class LandingPageView(View):
             'trending_movies': trending_movies,
             'featured_movie': featured_movie,
             'genres': genres,
-            'placeholder_poster': static('img/placeholder-poster.jpg'),
             'hide_navbar': True,  # Hide default navbar
         })
         return context
