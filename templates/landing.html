@@ -4,311 +4,345 @@
 {% block title %}AIFLIX - Unlimited Movies & TV Shows{% endblock %}
 
 {% block navbar %}
-<!-- Custom Navbar for Landing Page -->
-<nav class="navbar navbar-expand-lg navbar-dark fixed-top landing-navbar" id="mainNavbar">
-    <div class="container">
-        <a class="navbar-brand" href="{% url 'landing' %}">
-            <h1>AIFLIX</h1>
-        </a>
-        
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#landingNavbar" aria-controls="landingNavbar" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        
-        <div class="collapse navbar-collapse" id="landingNavbar">
-            <div class="ms-auto d-flex">
-                <a href="{% url 'accounts:login' %}" class="btn btn-outline-light me-2">Login</a>
-                <a href="{% url 'accounts:register' %}" class="btn btn-primary">Sign Up</a>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="fas fa-film"></i> AIFLIX</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/browse/">Browse</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'profiles:profile_list' %}">Profiles</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounts:logout' %}">Logout</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounts:login' %}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounts:register' %}">Register</a>
+                        </li>
+                    {% endif %}
+                </ul>
             </div>
         </div>
-    </div>
-</nav>
+    </nav>
 {% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<section class="hero">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
                 <h1>Welcome to AIFLIX</h1>
-                <p class="lead">Watch unlimited movies and TV shows with AI-powered recommendations.</p>
+                <p class="hero-subtitle">Unlimited movies and TV shows. Watch anywhere. Cancel anytime.</p>
                 <div class="hero-buttons">
-                    <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg">Start Watching</a>
-                    <a href="#features" class="btn btn-outline-light btn-lg">Learn More</a>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="hero-image">
-                    <i class="fas fa-film fa-4x"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Features Section -->
-<section id="features" class="features">
-    <div class="container">
-        <h2 class="section-title">Why Choose AIFLIX?</h2>
-        <div class="features-grid">
-            <div class="feature-card">
-                <i class="fas fa-film"></i>
-                <h3>Unlimited Streaming</h3>
-                <p>Watch as much as you want, whenever you want.</p>
-            </div>
-            <div class="feature-card">
-                <i class="fas fa-magic"></i>
-                <h3>AI Recommendations</h3>
-                <p>Get personalized movie suggestions based on your preferences.</p>
-            </div>
-            <div class="feature-card">
-                <i class="fas fa-mobile-alt"></i>
-                <h3>Watch Anywhere</h3>
-                <p>Stream on your TV, computer, phone, and tablet.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Trending Movies Section -->
-<section class="trending-movies">
-    <div class="container">
-        <h2 class="section-title">Trending Movies</h2>
-        <div class="movie-grid">
-            {% for movie in trending_movies %}
-            <div class="movie-card">
-                <div class="movie-poster">
-                    {% if movie.poster %}
-                        <img src="{{ movie.poster.url }}" alt="{{ movie.title }}">
+                    {% if user.is_authenticated %}
+                        <a href="/browse/" class="btn btn-primary btn-lg">Start Watching</a>
                     {% else %}
-                        <i class="fas fa-film"></i>
+                        <a href="{% url 'accounts:login' %}" class="btn btn-primary btn-lg">Sign In</a>
+                        <a href="{% url 'accounts:register' %}" class="btn btn-outline-light btn-lg">Sign Up</a>
                     {% endif %}
                 </div>
-                <div class="movie-info">
-                    <h3 class="movie-title">{{ movie.title }}</h3>
-                    <p class="movie-genres">{% for genre in movie.genres.all %}{{ genre.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="features-section">
+        <div class="container">
+            <h2 class="section-title text-center mb-5">Why Choose AIFLIX?</h2>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-film"></i>
+                    <h3>Unlimited Movies</h3>
+                    <p>Stream thousands of movies and TV shows anytime you want.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-tv"></i>
+                    <h3>Watch Anywhere</h3>
+                    <p>Stream on your phone, tablet, laptop, or TV.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-clock"></i>
+                    <h3>No Contracts</h3>
+                    <p>Cancel anytime. No long-term commitments.</p>
                 </div>
             </div>
-            {% endfor %}
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- Featured Movie Section -->
-<section class="featured-movie">
-    <div class="container">
-        <h2 class="section-title">Featured Movie</h2>
-        <div class="featured-movie-card">
-            {% if featured_movie %}
-                <div class="movie-poster">
-                    {% if featured_movie.poster %}
-                        <img src="{{ featured_movie.poster.url }}" alt="{{ featured_movie.title }}">
-                    {% else %}
-                        <i class="fas fa-film"></i>
+    <section class="trending-section">
+        <div class="container">
+            <h2 class="section-title">Trending Movies</h2>
+            <div class="trending-grid">
+                {% for movie in trending_movies %}
+                    <div class="movie-card">
+                        <div class="movie-poster">
+                            {% if movie.poster %}
+                                <img src="{{ movie.poster.url }}" alt="{{ movie.title }}">
+                            {% else %}
+                                <i class="fas fa-film"></i>
+                            {% endif %}
+                        </div>
+                        <div class="movie-info">
+                            <h3>{{ movie.title }}</h3>
+                            <p>{{ movie.description|truncatewords:10 }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
         </div>
-    </div>
-</section>
-{% endblock content %}
+    </section>
+
+    <section class="featured-section">
+        <div class="container">
+            <h2 class="section-title">Featured Movie</h2>
+            <div class="featured-movie-card">
+                {% if featured_movie %}
+                    <div class="movie-poster">
+                        {% if featured_movie.poster %}
+                            <img src="{{ featured_movie.poster.url }}" alt="{{ featured_movie.title }}">
+                        {% else %}
+                            <i class="fas fa-film"></i>
+                        {% endif %}
+                    </div>
+                    <div class="movie-info">
+                        <h3>{{ featured_movie.title }}</h3>
+                        <p>{{ featured_movie.description }}</p>
+                        <div class="movie-actions">
+                            <a href="{{ featured_movie.get_absolute_url }}" class="btn btn-primary">Watch Now</a>
+                            <button class="btn btn-outline-primary">Add to Watchlist</button>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <i class="fas fa-film"></i> AIFLIX
+                </div>
+                <div class="footer-links">
+                    <a href="/#">About Us</a>
+                    <a href="/#">Contact</a>
+                    <a href="/#">Terms of Service</a>
+                    <a href="/#">Privacy Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+{% endblock %}
 
 {% block extra_css %}
 <style>
+    :root {
+        --primary-color: #e50914;
+        --secondary-color: #221f1f;
+        --background-color: #141414;
+        --text-color: #fff;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--background-color);
+        color: var(--text-color);
+    }
+
     .hero {
         background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
         padding: 100px 0;
         color: white;
     }
-    
+
     .hero-content {
         max-width: 1200px;
         margin: 0 auto;
-        padding: 0 2rem;
+        text-align: center;
     }
-    
-    .hero-title {
-        font-size: 3.5rem;
+
+    .hero h1 {
+        font-size: 4rem;
         font-weight: 700;
         margin-bottom: 1.5rem;
-        line-height: 1.2;
     }
-    
+
     .hero-subtitle {
-        font-size: 1.25rem;
+        font-size: 1.5rem;
         margin-bottom: 2rem;
-        color: #e0e0e0;
     }
-    
-    .cta-button {
-        background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
-        color: white;
-        padding: 1rem 2rem;
-        border-radius: 30px;
-        text-decoration: none;
+
+    .hero-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .btn {
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
         font-weight: 600;
-        transition: transform 0.3s ease;
-        margin-right: 1rem;
     }
-    
-    .cta-button:hover {
-        transform: translateY(-2px);
-    }
-    
-    .features-section {
-        padding: 5rem 0;
-        background: #1a1a1a;
-    }
-    
-    .section-title {
-        font-size: 2.5rem;
-        color: white;
-        margin-bottom: 3rem;
-    }
-    
-    .features-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 2rem;
-    }
-    
+
     .feature-card {
         background: rgba(255, 255, 255, 0.1);
-        border-radius: 15px;
         padding: 2rem;
+        border-radius: 1rem;
         text-align: center;
         transition: transform 0.3s ease;
     }
-    
+
     .feature-card:hover {
         transform: translateY(-5px);
     }
-    
-    .feature-icon {
+
+    .feature-card i {
         font-size: 2.5rem;
-        color: #ff6b6b;
-        margin-bottom: 1.5rem;
-    }
-    
-    .feature-title {
-        font-size: 1.5rem;
-        color: white;
+        color: var(--primary-color);
         margin-bottom: 1rem;
     }
-    
-    .feature-description {
-        color: #e0e0e0;
-    }
-    
-    .trending-section {
-        padding: 4rem 0;
-        background: #2d2d2d;
-    }
-    
-    .movie-grid {
+
+    .trending-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        padding: 2rem 0;
     }
-    
+
     .movie-card {
-        position: relative;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 1rem;
         overflow: hidden;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         transition: transform 0.3s ease;
     }
-    
+
     .movie-card:hover {
         transform: translateY(-5px);
     }
-    
-    .movie-image {
-        width: 100%;
-        height: 300px;
-        object-fit: cover;
-        border-radius: 10px;
+
+    .movie-poster {
+        position: relative;
+        padding-top: 56.25%; /* 16:9 aspect ratio */
+        overflow: hidden;
     }
-    
-    .movie-overlay {
+
+    .movie-poster img {
         position: absolute;
-        bottom: 0;
+        top: 0;
         left: 0;
-        right: 0;
-        background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
-        padding: 1rem;
-        color: white;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
-    
-    .movie-title {
-        font-size: 1.2rem;
+
+    .movie-poster i {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 3rem;
+        color: var(--primary-color);
+    }
+
+    .movie-info {
+        padding: 1.5rem;
+    }
+
+    .movie-info h3 {
         margin-bottom: 0.5rem;
     }
-    
-    .movie-genre {
-        font-size: 0.9rem;
-        color: #e0e0e0;
+
+    .movie-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
     }
-    
-    .featured-section {
-        padding: 6rem 0;
-        background: #1a1a1a;
+
+    .featured-movie-card {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 1rem;
+        overflow: hidden;
+        display: flex;
+        gap: 2rem;
+        padding: 2rem;
     }
-    
-    .featured-content {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 2rem;
+
+    .footer {
+        background: var(--secondary-color);
+        padding: 3rem 0;
+        margin-top: 4rem;
     }
-    
-    .featured-title {
-        font-size: 2.5rem;
-        color: white;
-        margin-bottom: 1.5rem;
+
+    .footer-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
-    
-    .featured-subtitle {
-        color: #e0e0e0;
-        margin-bottom: 2rem;
+
+    .footer-brand {
+        font-size: 1.5rem;
+        color: var(--primary-color);
     }
-    
-    .featured-image {
-        width: 100%;
-        height: 500px;
-        object-fit: cover;
-        border-radius: 10px;
+
+    .footer-links {
+        display: flex;
+        gap: 2rem;
     }
-    
+
+    .footer-links a {
+        color: var(--text-color);
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .footer-links a:hover {
+        color: var(--primary-color);
+    }
+
     @media (max-width: 768px) {
-        .hero-title {
-            font-size: 2.5rem;
-        }
-        
-        .hero-subtitle {
-            font-size: 1.1rem;
-        }
-        
         .hero-content {
             padding: 1.5rem;
             margin-top: 4rem;
-            height: 200px;
         }
-        
-        .movie-title {
-            font-size: 1rem;
+
+        .hero h1 {
+            font-size: 2.5rem;
         }
-        
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+        }
+
+        .hero-buttons {
+            flex-direction: column;
+        }
+
         .features-grid {
             grid-template-columns: 1fr;
-            gap: 1.5rem;
         }
-        
-        .cta-buttons {
+
+        .featured-movie-card {
             flex-direction: column;
-            align-items: center;
         }
-        
-        .btn {
-            width: 100%;
-            max-width: 300px;
+
+        .footer-content {
+            flex-direction: column;
+            text-align: center;
+            gap: 2rem;
+        }
+
+        .footer-links {
+            flex-direction: column;
+            gap: 1rem;
         }
     }
 </style>
@@ -316,13 +350,8 @@
 
 {% block extra_js %}
 <script>
-    // Navbar scroll effect
-    window.addEventListener('scroll', function() {
-        const navbar = document.getElementById('mainNavbar');
-        if (window.scrollY > 50) {
-            navbar.classList.add('scrolled');
-        } else {
-            navbar.classList.remove('scrolled');
+    // Add any custom JavaScript here
+    console.log('Landing page loaded');
         }
     });
     
